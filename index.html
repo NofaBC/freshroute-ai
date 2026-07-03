@@ -1,0 +1,2803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshRoute AI™ — Bakery Route Distribution & Driver Profit Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d97706; --primary-light: #fbbf24; --primary-dark: #b45309;
+            --secondary: #059669; --danger: #dc2626; --warning: #f59e0b; --info: #3b82f6;
+            --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
+            --radius: 14px; --radius-sm: 8px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh;
+        }
+        .app-header {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100;
+            box-shadow: var(--shadow-lg);
+        }
+        .app-header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 40px; height: 40px; background: white; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+        .logo-text span { font-weight: 400; opacity: 0.9; }
+        .ai-badge { background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 20px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab { padding: 8px 14px; border: none; background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.85); border-radius: 8px; font-size: 12px; font-weight: 600;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .nav-tab:hover { background: rgba(255,255,255,0.25); }
+        .nav-tab.active { background: white; color: var(--primary-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .container { padding: 16px; max-width: 800px; margin: 0 auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 20px; margin-bottom: 16px; border: 1px solid var(--border); }
+        .card-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px; }
+        .card-title .icon { font-size: 18px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .stat-card { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: var(--radius-sm); padding: 14px; border: 1px solid #fbbf24; }
+        .stat-card.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: #34d399; }
+        .stat-card.red { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: #f87171; }
+        .stat-card.blue { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-color: #60a5fa; }
+        .stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-light); margin-bottom: 4px; }
+        .stat-value { font-size: 22px; font-weight: 800; color: var(--text); }
+        .stat-value.small { font-size: 16px; }
+        .stat-sub { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+        .driver-info { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .driver-avatar { width: 56px; height: 56px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; font-weight: 700; }
+        .driver-details h2 { font-size: 18px; font-weight: 700; }
+        .driver-details p { font-size: 13px; color: var(--text-light); }
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light);
+            margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .form-input, .form-select { width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; background: white;
+            transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(217,119,6,0.1); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 12px 20px; border: none; border-radius: var(--radius-sm); font-size: 14px;
+            font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;
+            box-shadow: 0 4px 12px rgba(217,119,6,0.3); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(217,119,6,0.4); }
+        .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-success { background: linear-gradient(135deg, #059669, #047857); color: white; box-shadow: 0 4px 12px rgba(5,150,105,0.3); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+        .btn-sm { padding: 8px 14px; font-size: 12px; width: auto; }
+        .table-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-light); background: #f8fafc; }
+        tr:hover td { background: #f8fafc; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .progress-fill.green { background: var(--secondary); }
+        .progress-fill.yellow { background: var(--warning); }
+        .progress-fill.red { background: var(--danger); }
+        .ai-insight { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid var(--primary);
+            border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 14px; font-size: 13px; }
+        .ai-insight .ai-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--primary-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .ai-insight p { color: #78350f; line-height: 1.6; }
+        .ai-insight strong { color: #451a03; }
+        .store-card { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px;
+            margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .store-card:hover { border-color: var(--primary); }
+        .store-card.selected { border-color: var(--primary); background: #fffbeb; }
+        .store-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .store-name { font-weight: 700; font-size: 14px; }
+        .store-status { font-size: 11px; }
+        .store-address { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+        .invoice-preview { background: white; border: 1px solid #d1d5db; border-radius: 8px;
+            padding: 24px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; }
+        .invoice-header { text-align: center; border-bottom: 2px solid var(--text); padding-bottom: 16px; margin-bottom: 16px; }
+        .invoice-header h2 { font-size: 18px; margin-bottom: 4px; }
+        .invoice-header p { font-size: 12px; color: #666; }
+        .invoice-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }
+        .invoice-total { border-top: 2px solid var(--text); margin-top: 8px; padding-top: 8px; font-weight: 700; }
+        .signature-line { margin-top: 30px; border-top: 1px solid #999; width: 200px; padding-top: 4px; font-size: 11px; color: #666; }
+        @media print {
+            .app-header, .nav-tabs, .hidden-print, .btn { display: none !important; }
+            .container { padding: 0; max-width: 100%; }
+            .card { box-shadow: none; border: none; padding: 0; }
+            body { background: white; }
+            .section { display: none !important; }
+            .section.invoice-section { display: block !important; }
+        }
+        .expiry-warning { color: var(--danger); font-weight: 600; }
+        .expiry-ok { color: var(--secondary); }
+        .expiry-soon { color: var(--warning); font-weight: 600; }
+        .recommendation-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 10px; }
+        .recommendation-card.warning { background: #fffbeb; border-color: #fcd34d; }
+        .recommendation-card.danger { background: #fef2f2; border-color: #fecaca; }
+        .rec-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+        .rec-desc { font-size: 12px; color: #4b5563; }
+        .rec-change { font-weight: 700; }
+        .rec-change.up { color: var(--secondary); }
+        .rec-change.down { color: var(--danger); }
+        .divider { height: 1px; background: var(--border); margin: 16px 0; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--text); color: white; padding: 12px 24px; border-radius: 30px;
+            font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); z-index: 1000;
+            transition: transform 0.3s ease; white-space: nowrap; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .metric-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-label { color: var(--text-light); }
+        .metric-value { font-weight: 700; }
+        .metric-value.positive { color: var(--secondary); }
+        .metric-value.negative { color: var(--danger); }
+        .planogram-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+        .planogram-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 12px; }
+        .planogram-item .target { font-size: 10px; color: var(--text-light); }
+        .planogram-item .qty { font-weight: 700; font-size: 14px; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .tag-exp-21 { background: #dbeafe; color: #1e40af; }
+        .tag-exp-28 { background: #d1fae5; color: #065f46; }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <header class="app-header">
+        <div class="app-header-top">
+            <div class="logo">
+                <div class="logo-icon">🥐</div>
+                <div class="logo-text">FreshRoute<span> AI™</span></div>
+            </div>
+            <div class="ai-badge">AI-Powered</div>
+        </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-section="dashboard" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="nav-tab" data-section="pickup" onclick="showSection('pickup')">Freezer Pickup</button>
+            <button class="nav-tab" data-section="inventory" onclick="showSection('inventory')">Truck Inventory</button>
+            <button class="nav-tab" data-section="store" onclick="showSection('store')">Store Visit</button>
+            <button class="nav-tab" data-section="invoice" onclick="showSection('invoice')">Invoice</button>
+            <button class="nav-tab" data-section="settlement" onclick="showSection('settlement')">Settlement</button>
+            <button class="nav-tab" data-section="route" onclick="showSection('route')">Route & Gas</button>
+            <button class="nav-tab" data-section="ai" onclick="showSection('ai')">AI Forecast</button>
+            <button class="nav-tab" data-section="plano" onclick="showSection('plano')">Plan-o-Gram</button>
+            <button class="nav-tab" data-section="setup" onclick="showSection('setup')">Route Setup</button>
+            <button class="nav-tab" data-section="monitor" onclick="showSection('monitor')">Live Monitor</button>
+            <button class="nav-tab" data-section="scanner" onclick="showSection('scanner')">AI Scanner</button>
+            <button class="nav-tab" data-section="order" onclick="showSection('order')">Next Week Order</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="section active">
+            <div class="card">
+                <div class="driver-info">
+                    <div class="driver-avatar">JD</div>
+                    <div class="driver-details">
+                        <h2>John Davidson</h2>
+                        <p>Route: North Montgomery • <span id="today-date"></span></p>
+                        <span class="badge badge-success">● On Route</span>
+                    </div>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Truck Inventory</div>
+                        <div class="stat-value" id="dash-inventory">0</div>
+                        <div class="stat-sub">items on truck</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Store Sales</div>
+                        <div class="stat-value" id="dash-sales">$0.00</div>
+                        <div class="stat-sub">this week</div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-label">Store Credits</div>
+                        <div class="stat-value" id="dash-credits">$0.00</div>
+                        <div class="stat-sub">expired products</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-label">Freezer Owed</div>
+                        <div class="stat-value" id="dash-owed">$0.00</div>
+                        <div class="stat-sub">product cost</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Gas & Expenses</div>
+                        <div class="stat-value" id="dash-expenses">$0.00</div>
+                        <div class="stat-sub">route costs</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Est. Gross</div>
+                        <div class="stat-value" id="dash-gross">$0.00</div>
+                        <div class="stat-sub">sales - credits - freezer</div>
+                    </div>
+                    <div class="stat-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-color: #34d399;">
+                        <div class="stat-label">Est. Net Earnings</div>
+                        <div class="stat-value" id="dash-net">$0.00</div>
+                        <div class="stat-sub">gross - gas - mileage - tolls - parking - other</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🤖</span> FreshRoute AI™ Insight</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Insight</div>
+                    <p id="dash-ai-insight">Loading AI analysis...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> Quick Actions</div>
+                <div class="row-2">
+                    <button class="btn btn-primary" onclick="showSection('pickup')">➕ Freezer Pickup</button>
+                    <button class="btn btn-success" onclick="showSection('store')">🏪 Store Visit</button>
+                </div>
+                <div style="margin-top:10px;" class="row-2">
+                    <button class="btn btn-secondary" onclick="showSection('invoice')">🧾 Print Invoice</button>
+                    <button class="btn btn-secondary" onclick="showSection('settlement')">💰 Settlement</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FREEZER PICKUP -->
+        <div id="pickup" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">❄️</span> Freezer Pickup / Bill of Lading</div>
+                <div class="form-group">
+                    <label class="form-label">Product</label>
+                    <select class="form-select" id="pickup-product">
+                        <option value="Croissant">Croissant</option>
+                        <option value="Cheese Danish">Cheese Danish</option>
+                        <option value="Muffin">Muffin</option>
+                        <option value="Cinnamon Roll">Cinnamon Roll</option>
+                        <option value="Apple Turnover">Apple Turnover</option>
+                    </select>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-input" id="pickup-qty" min="1" value="12">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Freezer Unit Cost ($)</label>
+                        <input type="number" class="form-input" id="pickup-cost" step="0.01" value="1.25">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Shelf Life</label>
+                        <select class="form-select" id="pickup-shelf-life">
+                            <option value="21">21 Days</option>
+                            <option value="28">28 Days</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pickup Date</label>
+                        <input type="date" class="form-input" id="pickup-date">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addPickup()">➕ Add to Pickup</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> Bill of Lading Summary</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Product</th><th class="text-right">Qty</th><th class="text-right">Unit $</th><th class="text-right">Total $</th><th>Expires</th></tr>
+                        </thead>
+                        <tbody id="bol-table"></tbody>
+                    </table>
+                </div>
+                <div class="divider"></div>
+                <div class="metric-row">
+                    <span class="metric-label">Total Items Picked Up</span>
+                    <span class="metric-value" id="bol-total-qty">0</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Total Freezer Cost</span>
+                    <span class="metric-value negative" id="bol-total-cost">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRUCK INVENTORY -->
+        <div id="inventory" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">🚚</span> Truck Inventory</div>
+                <div id="inventory-list"></div>
+            </div>
+        </div>
+
+        <!-- STORE VISIT -->
+        <div id="store" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">🏪</span> Select Store</div>
+                <div id="store-list"></div>
+            </div>
+
+            <div id="store-visit-panel" style="display:none;">
+                <div class="card">
+                    <div class="card-title"><span class="icon">📦</span> Shelf Stocking — <span id="visit-store-name"></span></div>
+                    <div class="planogram-grid" id="planogram-grid"></div>
+                    <div class="divider"></div>
+                    <div class="form-group">
+                        <label class="form-label">Product to Deliver</label>
+                        <select class="form-select" id="stock-product"></select>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label class="form-label">Quantity Stocked</label>
+                            <input type="number" class="form-input" id="stock-qty" min="1" value="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Store Sale Price ($)</label>
+                            <input type="number" class="form-input" id="stock-price" step="0.01" value="2.49">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="addStocking()">✅ Record Delivery</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><span class="icon">🗑️</span> Expired Product Credit</div>
+                    <div class="form-group">
+                        <label class="form-label">Expired Product</label>
+                        <select class="form-select" id="credit-product"></select>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label class="form-label">Quantity Removed</label>
+                            <input type="number" class="form-input" id="credit-qty" min="1" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Credit Price ($)</label>
+                            <input type="number" class="form-input" id="credit-price" step="0.01" value="1.25">
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" onclick="addCredit()">🔄 Issue Credit</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><span class="icon">🧾</span> This Visit Summary</div>
+                    <div id="visit-summary"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INVOICE -->
+        <div id="invoice" class="section">
+            <div class="card hidden-print">
+                <div class="card-title"><span class="icon">🧾</span> Generate Delivery Ticket</div>
+                <div class="form-group">
+                    <label class="form-label">Select Store for Invoice</label>
+                    <select class="form-select" id="invoice-store-select"></select>
+                </div>
+                <button class="btn btn-primary" onclick="generateInvoice()">📄 Generate Invoice</button>
+            </div>
+            <div id="invoice-display"></div>
+        </div>
+
+        <!-- SETTLEMENT -->
+        <div id="settlement" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">💰</span> Weekly Driver Settlement</div>
+                <div style="margin-bottom:16px;">
+                    <div class="metric-row">
+                        <span class="metric-label">Total Store Sales</span>
+                        <span class="metric-value positive" id="settlement-sales">$0.00</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Total Store Credits</span>
+                        <span class="metric-value negative" id="settlement-credits">$0.00</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Freezer Product Cost</span>
+                        <span class="metric-value negative" id="settlement-freezer">$0.00</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="metric-row">
+                        <span class="metric-label"><strong>Gross Driver Earnings</strong></span>
+                        <span class="metric-value" id="settlement-gross">$0.00</span>
+                    </div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <div class="metric-row">
+                        <span class="metric-label">Gas Cost</span>
+                        <span class="metric-value negative" id="settlement-gas">$0.00</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Mileage Cost</span>
+                        <span class="metric-value negative" id="settlement-mileage">$0.00</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Tolls</span>
+                        <span class="metric-value negative" id="settlement-tolls">$0.00</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Parking</span>
+                        <span class="metric-value negative" id="settlement-parking">$0.00</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Other Expenses</span>
+                        <span class="metric-value negative" id="settlement-other">$0.00</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="metric-row" style="font-size:16px;">
+                        <span class="metric-label"><strong>Net Driver Earnings</strong></span>
+                        <span class="metric-value positive" id="settlement-net" style="font-size:18px;">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📊</span> Settlement Breakdown</div>
+                <div style="height:200px; position:relative;">
+                    <canvas id="settlement-chart" width="700" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROUTE & GAS -->
+        <div id="route" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">🛣️</span> Route & Expenses</div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Starting Mileage</label>
+                        <input type="number" class="form-input" id="start-mileage" value="45230">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ending Mileage</label>
+                        <input type="number" class="form-input" id="end-mileage" value="45485">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Gas Cost ($)</label>
+                        <input type="number" class="form-input" id="gas-cost" step="0.01" value="48.50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tolls ($)</label>
+                        <input type="number" class="form-input" id="tolls-cost" step="0.01" value="5.40">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Parking ($)</label>
+                        <input type="number" class="form-input" id="parking-cost" step="0.01" value="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Other Expenses ($)</label>
+                        <input type="number" class="form-input" id="other-cost" step="0.01" value="3.25">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Traffic Delay Notes</label>
+                    <input type="text" class="form-input" id="traffic-notes" placeholder="e.g. I-270 delay 20 min">
+                </div>
+                <button class="btn btn-primary" onclick="saveRouteExpenses()">💾 Save Route Expenses</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📈</span> Route Performance</div>
+                <div class="stat-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-label">Total Miles</div>
+                        <div class="stat-value" id="route-miles">0</div>
+                        <div class="stat-sub">this route</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Profit / Mile</div>
+                        <div class="stat-value" id="route-profit-mile">$0.00</div>
+                        <div class="stat-sub">net earnings / mile</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Stores Visited</div>
+                        <div class="stat-value" id="route-stores">0</div>
+                        <div class="stat-sub">this week</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Profit / Store</div>
+                        <div class="stat-value" id="route-profit-store">$0.00</div>
+                        <div class="stat-sub">net earnings / store</div>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="metric-row">
+                    <span class="metric-label">Route Efficiency Score</span>
+                    <span class="metric-value" id="route-efficiency">—</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill green" id="efficiency-bar" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI FORECAST -->
+        <div id="ai" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">🤖</span> FreshRoute AI™ Forecasting</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Analysis Engine</div>
+                    <p>This is not just a record of what happened — FreshRoute AI™ predicts what <strong>should happen next</strong> based on your route data, seasonal patterns, and store behavior.</p>
+                </div>
+                <div id="ai-recommendations"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📅</span> Next Week Pickup Recommendations</div>
+                <div id="ai-pickup-recs"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🌤️</span> Weather & Seasonal Demand</div>
+                <div id="ai-weather"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🏆</span> Performance Insights</div>
+                <div id="ai-performance"></div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- NEXT WEEK ORDER -->
+        <div id="order" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> Order Schedule Settings</div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Order Generation Day</label>
+                        <select class="form-select" id="order-gen-day">
+                            <option value="Wednesday" selected>Wednesday</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Order Generation Time</label>
+                        <input type="time" class="form-input" id="order-gen-time" value="01:00">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Timezone</label>
+                        <select class="form-select" id="order-timezone">
+                            <option value="EDT" selected>EDT (Eastern Daylight)</option>
+                            <option value="EST">EST (Eastern Standard)</option>
+                            <option value="CDT">CDT (Central Daylight)</option>
+                            <option value="CST">CST (Central Standard)</option>
+                            <option value="PDT">PDT (Pacific Daylight)</option>
+                            <option value="PST">PST (Pacific Standard)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Deadline</label>
+                        <div class="form-input" style="background:#f8fafc; display:flex; align-items:center; font-size:13px;">
+                            <span>48 weekday hours before pickup</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pickup Days Per Week</label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="pickup-mon" checked> Monday
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="pickup-wed" checked> Wednesday
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="pickup-fri"> Friday
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="pickup-sat"> Saturday
+                        </label>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Truck Max Units</label>
+                        <input type="number" class="form-input" id="truck-max-units" value="120">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Truck Max Cases</label>
+                        <input type="number" class="form-input" id="truck-max-cases" value="60">
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Available Truck Space</span>
+                    <span class="metric-value" id="truck-available">120 units</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill green" id="truck-capacity-bar" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🤖</span> AI Order Recommendation</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Analysis</div>
+                    <p>FreshRoute AI reviewed your <strong>sales</strong>, <strong>credits</strong>, <strong>remaining truck inventory</strong>, <strong>shelf life</strong>, <strong>route demand</strong>, <strong>truck capacity</strong>, and <strong>weather/seasonal signals</strong> before recommending this order.</p>
+                </div>
+                <button class="btn btn-primary" onclick="generateOrder()">🧠 Generate AI Order</button>
+                <div id="order-recommendation" style="margin-top:16px; display:none;">
+                    <div class="divider"></div>
+                    <div class="card-title"><span class="icon">📦</span> Suggested Order</div>
+                    <div id="order-output"></div>
+                    <div class="divider"></div>
+                    <div class="metric-row">
+                        <span class="metric-label">Total Units in Order</span>
+                        <span class="metric-value" id="order-total-units">0</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Estimated Freezer Cost</span>
+                        <span class="metric-value negative" id="order-total-cost">$0.00</span>
+                    </div>
+                    <div id="order-split-notice" style="display:none; margin-top:10px;" class="recommendation-card warning">
+                        <div class="rec-title">📦 Order Split Required</div>
+                        <div class="rec-desc">Order exceeds truck capacity. Split into <strong>Pickup 1</strong> and <strong>Pickup 2</strong> on different days.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="email-preview-card" style="display:none;">
+                <div class="card-title"><span class="icon">📧</span> Email Freezer Order Preview</div>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; font-size:13px; line-height:1.6;">
+                    <div style="margin-bottom:12px;"><strong>To:</strong> <span id="email-to">orders@freshfreezer.com</span></div>
+                    <div style="margin-bottom:12px;"><strong>Subject:</strong> Freezer Order — Route <span id="email-route">North Montgomery</span> — Pickup <span id="email-pickup-date"></span></div>
+                    <div style="border-top:1px solid var(--border); padding-top:12px;">
+                        <p>Hello Freezer Team,</p>
+                        <p style="margin-top:8px;">Please prepare the following order for driver <strong id="email-driver-name">John Davidson</strong> on Route <strong id="email-route-name">North Montgomery</strong>.</p>
+                        <div style="margin:12px 0; background:white; border:1px solid var(--border); border-radius:6px; padding:10px;">
+                            <table style="font-size:12px;">
+                                <thead><tr><th>Product</th><th class="text-right">Qty</th><th class="text-right">Unit $</th><th class="text-right">Total</th><th>Pickup</th></tr></thead>
+                                <tbody id="email-order-table"></tbody>
+                            </table>
+                        </div>
+                        <p><strong>Notes:</strong> <span id="email-notes">Generated by FreshRoute AI™</span></p>
+                        <p style="margin-top:8px;">Thank you,<br>FreshRoute AI™ System</p>
+                    </div>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button class="btn btn-success" onclick="sendOrderEmail()">📤 Send Order Email</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('email-preview-card').style.display='none'">Cancel</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🚨</span> Emergency Order</div>
+                <div class="form-group">
+                    <label class="form-label">Product Needed</label>
+                    <select class="form-select" id="emergency-product">
+                        <option value="Croissant">Croissant</option>
+                        <option value="Cheese Danish">Cheese Danish</option>
+                        <option value="Muffin">Muffin</option>
+                        <option value="Cinnamon Roll">Cinnamon Roll</option>
+                        <option value="Apple Turnover">Apple Turnover</option>
+                    </select>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Quantity Needed</label>
+                        <input type="number" class="form-input" id="emergency-qty" min="1" value="12">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Requested Pickup Date</label>
+                        <input type="date" class="form-input" id="emergency-date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reason / Urgency</label>
+                    <input type="text" class="form-input" id="emergency-reason" placeholder="e.g. Store ran out, urgent restock needed">
+                </div>
+                <button class="btn btn-danger" onclick="generateEmergencyOrder()">🚨 Generate Emergency Order</button>
+                <div id="emergency-preview" style="display:none; margin-top:16px;">
+                    <div class="divider"></div>
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:16px; font-size:13px;">
+                        <div style="font-weight:700; color:#991b1b; margin-bottom:8px;">🚨 URGENT FREEZER ORDER</div>
+                        <div id="emergency-output"></div>
+                    </div>
+                    <button class="btn btn-danger" style="margin-top:10px;" onclick="sendEmergencyOrder()">📤 Send Emergency Order</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- PLAN-O-GRAM UPLOAD -->
+        <div id="plano" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">📸</span> Upload Store Plan-o-Gram</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Vision</div>
+                    <p>Upload a photo of each store's shelf layout. FreshRoute AI will analyze shelf space, product placement, and capacity to improve order recommendations and reduce expired credits.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Select Store</label>
+                    <select class="form-select" id="plano-store-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Plan-o-Gram Photo</label>
+                    <input type="file" class="form-input" id="plano-file" accept="image/*" onchange="previewPlano()" style="padding:8px;">
+                </div>
+                <div id="plano-preview-wrap" style="display:none; margin-bottom:16px;">
+                    <div style="font-weight:700; font-size:12px; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light);">Preview</div>
+                    <img id="plano-preview-img" style="width:100%; max-height:300px; object-fit:contain; border-radius:8px; border:1px solid var(--border); background:#f8fafc;">
+                    <div style="margin-top:8px; font-size:12px; color:var(--text-light);" id="plano-file-info"></div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Total Shelf Slots</label>
+                        <input type="number" class="form-input" id="plano-slots" min="1" value="24" placeholder="e.g. 24">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Shelf Depth (inches)</label>
+                        <input type="number" class="form-input" id="plano-depth" min="1" value="12" placeholder="e.g. 12">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Facing Count per Product</label>
+                        <input type="number" class="form-input" id="plano-facing" min="1" value="2" placeholder="e.g. 2">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Products per Shelf</label>
+                        <input type="number" class="form-input" id="plano-per-shelf" min="1" value="5" placeholder="e.g. 5">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="savePlano()">💾 Save Plan-o-Gram</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> Stored Plan-o-Grams</div>
+                <div id="plano-list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📊</span> Shelf Space Analysis</div>
+                <div id="plano-analysis"></div>
+            </div>
+        </div>
+
+
+        <!-- ROUTE & STORE SETUP -->
+        <div id="setup" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">🏠</span> My Starting Location</div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Home / Start Address</label>
+                        <input type="text" class="form-input" id="setup-home-address" placeholder="e.g. 123 Main St, Rockville, MD 20852" value="123 Main St, Rockville, MD 20852">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" class="form-input" id="setup-start-time" value="05:00">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" class="form-input" id="setup-home-lat" step="0.0001" value="39.0839" placeholder="39.0839">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" class="form-input" id="setup-home-lng" step="0.0001" value="-77.1530" placeholder="-77.1530">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">❄️</span> Freezer / Warehouse Location</div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Freezer Name</label>
+                        <input type="text" class="form-input" id="setup-freezer-name" value="North Montgomery Freezer">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Freezer Address</label>
+                        <input type="text" class="form-input" id="setup-freezer-address" value="4500 Randolph Rd, Rockville, MD 20852">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" class="form-input" id="setup-freezer-lat" step="0.0001" value="39.0625">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" class="form-input" id="setup-freezer-lng" step="0.0001" value="-77.1080">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Contact Name</label>
+                        <input type="text" class="form-input" id="setup-freezer-contact" value="Mike Torres">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="tel" class="form-input" id="setup-freezer-phone" value="(301) 555-0142">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pickup Hours</label>
+                    <input type="text" class="form-input" id="setup-freezer-hours" value="Mon-Fri 4:00 AM - 8:00 AM">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🏪</span> My Store List</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Tip</div>
+                    <p>Add all your stores with delivery frequency and preferred days. FreshRoute AI will calculate the optimal route — including whether to hit the freezer first or go directly to stores based on inventory and schedule.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Store Name</label>
+                    <input type="text" class="form-input" id="setup-store-name" placeholder="e.g. 7-Eleven Rockville">
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-input" id="setup-store-address" placeholder="e.g. 1520 Rockville Pike, Rockville, MD 20852">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="tel" class="form-input" id="setup-store-phone" placeholder="(301) 555-0100">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" class="form-input" id="setup-store-lat" step="0.0001" placeholder="39.0839">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" class="form-input" id="setup-store-lng" step="0.0001" placeholder="-77.1530">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Delivery Frequency</label>
+                        <select class="form-select" id="setup-store-frequency">
+                            <option value="daily">Daily</option>
+                            <option value="2x-week" selected>2x per week</option>
+                            <option value="3x-week">3x per week</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Preferred Days</label>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-mon" value="Mon"> Mon</label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-tue" value="Tue"> Tue</label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-wed" value="Wed" checked> Wed</label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-thu" value="Thu"> Thu</label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-fri" value="Fri" checked> Fri</label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-sat" value="Sat"> Sat</label>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;"><input type="checkbox" id="store-day-sun" value="Sun"> Sun</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label class="form-label">Delivery Window Start</label>
+                        <input type="time" class="form-input" id="setup-store-window-start" value="06:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Delivery Window End</label>
+                        <input type="time" class="form-input" id="setup-store-window-end" value="14:00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Plan-o-Gram Slots</label>
+                    <input type="number" class="form-input" id="setup-store-slots" min="1" value="24" placeholder="Shelf slots for this store">
+                </div>
+                <button class="btn btn-primary" onclick="addSetupStore()">➕ Add Store</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> My Route Setup</div>
+                <div id="setup-store-list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🗺️</span> AI Route Optimization</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 Route AI</div>
+                    <p>FreshRoute AI calculates your optimal daily route using your home location, freezer location, store locations, delivery windows, and frequency. It decides whether to go to the freezer first or directly to stores based on truck inventory needs.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Day of Week</label>
+                    <select class="form-select" id="route-day-select">
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday" selected>Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Truck Current Inventory</label>
+                    <div class="form-input" style="background:#f8fafc; display:flex; align-items:center; font-size:13px;">
+                        <span id="route-setup-inventory">Loading...</span>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="calculateOptimalRoute()">🧠 Calculate Optimal Route</button>
+                <div id="route-result" style="display:none; margin-top:16px;">
+                    <div class="divider"></div>
+                    <div id="route-output"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- DELIVERY MONITORING & ALERTS -->
+        <div id="monitor" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">📡</span> Live Delivery Monitor</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Guardian</div>
+                    <p>FreshRoute AI monitors your route in real-time. If a delivery is missed, delayed, or at risk, the system automatically drafts an alert email to the store — so they are never left wondering.</p>
+                </div>
+                <div class="stat-grid" style="margin-bottom:16px;">
+                    <div class="stat-card green">
+                        <div class="stat-label">On-Time Deliveries</div>
+                        <div class="stat-value" id="monitor-ontime">0</div>
+                        <div class="stat-sub">today</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">At Risk</div>
+                        <div class="stat-value" id="monitor-risk">0</div>
+                        <div class="stat-sub">delayed or late</div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-label">Missed</div>
+                        <div class="stat-value" id="monitor-missed">0</div>
+                        <div class="stat-sub">not delivered</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-label">Alerts Sent</div>
+                        <div class="stat-value" id="monitor-alerts">0</div>
+                        <div class="stat-sub">auto-emails</div>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="card-title"><span class="icon">🕐</span> Current Route Status</div>
+                <div id="monitor-route-status"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">⚠️</span> Simulate Delivery Issue</div>
+                <div class="form-group">
+                    <label class="form-label">Select Store</label>
+                    <select class="form-select" id="monitor-store-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Type</label>
+                    <select class="form-select" id="monitor-issue-type">
+                        <option value="delay">Running Late (Traffic / Delay)</option>
+                        <option value="missed">Missed Delivery (Cannot make it today)</option>
+                        <option value="breakdown">Truck Breakdown / Mechanical Issue</option>
+                        <option value="inventory">Short Inventory (Not enough stock)</option>
+                        <option value="emergency">Personal Emergency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estimated Delay (minutes)</label>
+                    <input type="number" class="form-input" id="monitor-delay-min" min="0" value="30" placeholder="e.g. 30">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Notes</label>
+                    <input type="text" class="form-input" id="monitor-notes" placeholder="e.g. Stuck on I-270 due to accident">
+                </div>
+                <button class="btn btn-danger" onclick="simulateDeliveryIssue()">⚠️ Simulate Issue & Generate Alert</button>
+            </div>
+
+            <div class="card" id="alert-preview-card" style="display:none;">
+                <div class="card-title"><span class="icon">📧</span> AI-Generated Store Alert</div>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; font-size:13px; line-height:1.6;">
+                    <div style="margin-bottom:12px;"><strong>To:</strong> <span id="alert-store-email">store-manager@7eleven.com</span></div>
+                    <div style="margin-bottom:12px;"><strong>Subject:</strong> <span id="alert-subject">Delivery Update — Route North Montgomery</span></div>
+                    <div style="border-top:1px solid var(--border); padding-top:12px;">
+                        <p id="alert-greeting">Hello,</p>
+                        <p id="alert-body" style="margin-top:8px;"></p>
+                        <p id="alert-details" style="margin-top:8px; color:#64748b;"></p>
+                        <p id="alert-closing" style="margin-top:12px;"></p>
+                        <div style="margin-top:12px; padding:10px; background:#fffbeb; border-radius:6px; border:1px solid #fcd34d; font-size:12px;">
+                            <strong>🤖 FreshRoute AI Guardian</strong><br>
+                            <span id="alert-ai-reasoning"></span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button class="btn btn-success" onclick="sendAlertEmail()">📤 Send Alert to Store</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('alert-preview-card').style.display='none'">Cancel</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📜</span> Alert History</div>
+                <div id="alert-history"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🔧</span> Auto-Alert Settings</div>
+                <div class="form-group">
+                    <label class="form-label">Late Threshold (minutes past window)</label>
+                    <input type="number" class="form-input" id="alert-late-threshold" value="15" min="5">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Missed Delivery Threshold (hours past window end)</label>
+                    <input type="number" class="form-input" id="alert-missed-threshold" value="2" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Auto-Alert Recipients</label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="alert-to-store" checked> Store Manager
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="alert-to-freezer" checked> Freezer Manager
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="alert-to-dispatcher"> Route Dispatcher
+                        </label>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveAlertSettings()">💾 Save Alert Settings</button>
+            </div>
+        </div>
+
+
+        <!-- AI VISION SCANNER -->
+        <div id="scanner" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">📷</span> AI Vision Scanner</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 AI Vision Engine</div>
+                    <p>Point your camera at a product list, receipt, barcode, or shelf. FreshRoute AI reads the image and automatically creates product entries, inventory counts, or pickup lists — no manual typing.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Scan Mode</label>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" id="scan-mode-product" onclick="setScanMode('product')" style="width:auto; background:linear-gradient(135deg, #d97706, #b45309);">📦 Product List</button>
+                        <button class="btn btn-secondary btn-sm" id="scan-mode-pickup" onclick="setScanMode('pickup')" style="width:auto;">❄️ Freezer Pickup</button>
+                        <button class="btn btn-secondary btn-sm" id="scan-mode-inventory" onclick="setScanMode('inventory')" style="width:auto;">🚚 Truck Inventory</button>
+                        <button class="btn btn-secondary btn-sm" id="scan-mode-barcode" onclick="setScanMode('barcode')" style="width:auto;">🏷️ Barcode Scan</button>
+                    </div>
+                </div>
+
+                <div id="scan-mode-indicator" style="margin-bottom:14px; padding:8px 12px; background:#fffbeb; border-radius:6px; border:1px solid #fcd34d; font-size:12px; font-weight:600; color:#92400e;">
+                    📦 Product List Mode: Scan a paper list, receipt, or product sheet. AI will extract product names, quantities, and prices.
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Take Photo or Upload Image</label>
+                    <input type="file" class="form-input" id="scan-file" accept="image/*" capture="environment" onchange="processScanImage()" style="padding:8px;">
+                    <div style="font-size:11px; color:var(--text-light); margin-top:4px;">💡 Tip: Use your camera app, then upload here. Or tap this field on mobile to open camera directly.</div>
+                </div>
+
+                <div id="scan-preview-wrap" style="display:none; margin-bottom:16px;">
+                    <div style="font-weight:700; font-size:12px; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light);">Captured Image</div>
+                    <img id="scan-preview-img" style="width:100%; max-height:300px; object-fit:contain; border-radius:8px; border:1px solid var(--border); background:#f8fafc;">
+                    <div style="margin-top:8px; font-size:12px; color:var(--text-light);" id="scan-file-info"></div>
+                </div>
+
+                <div id="scan-processing" style="display:none; text-align:center; padding:20px;">
+                    <div style="font-size:32px; margin-bottom:10px;">🧠</div>
+                    <div style="font-weight:700; font-size:14px; margin-bottom:6px;">FreshRoute AI is analyzing your image...</div>
+                    <div style="font-size:12px; color:var(--text-light);">Reading text • Detecting products • Matching barcodes • Counting items</div>
+                    <div class="progress-bar" style="margin-top:12px; max-width:300px; margin-left:auto; margin-right:auto;">
+                        <div class="progress-fill green" id="scan-progress-bar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="scan-analyze-btn" onclick="analyzeScanImage()" style="display:none;">🔍 Analyze with AI Vision</button>
+            </div>
+
+            <div class="card" id="scan-results-card" style="display:none;">
+                <div class="card-title"><span class="icon">✅</span> AI Scan Results</div>
+                <div id="scan-confidence-score" style="margin-bottom:12px; padding:8px 12px; background:#f0fdf4; border-radius:6px; border:1px solid #bbf7d0; font-size:12px; font-weight:600; color:#065f46;">
+                    ✅ AI Confidence: 94% — 5 products detected, 3 barcodes matched, 1 expiry date found
+                </div>
+                <div id="scan-results-output"></div>
+                <div style="margin-top:16px; display:flex; gap:10px;">
+                    <button class="btn btn-success" onclick="confirmScanResults()">✅ Confirm & Add to System</button>
+                    <button class="btn btn-secondary" onclick="rejectScanResults()">❌ Reject & Rescan</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📝</span> Manual Entry Fallback</div>
+                <div class="ai-insight">
+                    <div class="ai-label">💡 Pro Tip</div>
+                    <p>If the AI scan misses something, you can always add or edit items manually before confirming. The AI learns from your corrections.</p>
+                </div>
+                <div id="scan-manual-entries"></div>
+                <button class="btn btn-secondary" onclick="addManualScanEntry()" style="margin-top:10px; width:auto;">➕ Add Manual Item</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📚</span> Scan History</div>
+                <div id="scan-history"></div>
+            </div>
+        </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        const state = {
+            driver: { name: 'John Davidson', route: 'North Montgomery', routeId: 'NM-01' },
+            stores: [
+                { id: 's1', name: '7-Eleven Rockville', address: '1520 Rockville Pike, Rockville, MD 20852', planogram: { 'Croissant': 8, 'Cheese Danish': 6, 'Muffin': 10, 'Cinnamon Roll': 5, 'Apple Turnover': 4 } },
+                { id: 's2', name: 'Shell Gaithersburg', address: '890 Quince Orchard Rd, Gaithersburg, MD 20878', planogram: { 'Croissant': 6, 'Cheese Danish': 5, 'Muffin': 8, 'Cinnamon Roll': 4, 'Apple Turnover': 3 } },
+                { id: 's3', name: 'Exxon Germantown', address: '19700 Germantown Rd, Germantown, MD 20874', planogram: { 'Croissant': 5, 'Cheese Danish': 4, 'Muffin': 6, 'Cinnamon Roll': 3, 'Apple Turnover': 3 } }
+            ],
+            products: ['Croissant', 'Cheese Danish', 'Muffin', 'Cinnamon Roll', 'Apple Turnover'],
+            inventory: [], pickups: [], deliveries: [], credits: [],
+            expenses: { gas: 48.50, tolls: 5.40, parking: 0.00, other: 3.25, startMileage: 45230, endMileage: 45485, trafficNotes: 'I-270 delay 20 min' },
+            selectedStore: null
+        };
+
+        function init() {
+            loadSetupSampleStores();
+            initPlanoStoreSelect();
+            initMonitorStoreSelect();
+            document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+            document.getElementById('pickup-date').value = new Date().toISOString().split('T')[0];
+            loadSampleData();
+            renderStores();
+            renderAll();
+        }
+
+        function loadSampleData() {
+            const today = new Date();
+            const d21 = new Date(today); d21.setDate(d21.getDate() + 14);
+            const d28 = new Date(today); d28.setDate(d28.getDate() + 21);
+            state.pickups = [
+                { id: 1, product: 'Croissant', qty: 24, cost: 1.25, shelfLife: 21, date: today.toISOString().split('T')[0], expiry: d21.toISOString().split('T')[0] },
+                { id: 2, product: 'Cheese Danish', qty: 18, cost: 1.40, shelfLife: 21, date: today.toISOString().split('T')[0], expiry: d21.toISOString().split('T')[0] },
+                { id: 3, product: 'Muffin', qty: 30, cost: 1.10, shelfLife: 28, date: today.toISOString().split('T')[0], expiry: d28.toISOString().split('T')[0] },
+                { id: 4, product: 'Cinnamon Roll', qty: 15, cost: 1.55, shelfLife: 21, date: today.toISOString().split('T')[0], expiry: d21.toISOString().split('T')[0] },
+                { id: 5, product: 'Apple Turnover', qty: 12, cost: 1.35, shelfLife: 28, date: today.toISOString().split('T')[0], expiry: d28.toISOString().split('T')[0] }
+            ];
+            state.inventory = state.pickups.map(p => ({ ...p, remaining: p.qty }));
+            state.deliveries = [
+                { id: 1, storeId: 's1', product: 'Croissant', qty: 6, price: 2.49, date: today.toISOString().split('T')[0] },
+                { id: 2, storeId: 's1', product: 'Muffin', qty: 8, price: 2.29, date: today.toISOString().split('T')[0] },
+                { id: 3, storeId: 's2', product: 'Cheese Danish', qty: 5, price: 2.79, date: today.toISOString().split('T')[0] },
+                { id: 4, storeId: 's2', product: 'Cinnamon Roll', qty: 4, price: 2.99, date: today.toISOString().split('T')[0] },
+                { id: 5, storeId: 's3', product: 'Apple Turnover', qty: 3, price: 2.59, date: today.toISOString().split('T')[0] }
+            ];
+            state.credits = [
+                { id: 1, storeId: 's1', product: 'Croissant', qty: 2, price: 1.25, date: today.toISOString().split('T')[0] },
+                { id: 2, storeId: 's2', product: 'Cheese Danish', qty: 1, price: 1.40, date: today.toISOString().split('T')[0] }
+            ];
+            state.deliveries.forEach(d => {
+                const inv = state.inventory.find(i => i.product === d.product && i.remaining >= d.qty);
+                if (inv) inv.remaining -= d.qty;
+            });
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.nav-tab[data-section="${id}"]`)?.classList.add('active');
+            renderAll();
+            if (id === 'settlement') drawSettlementChart();
+            if (id === 'ai') renderAIForecast();
+        }
+
+        function renderAll() {
+            renderDashboard();
+            renderBOL();
+            renderInventory();
+            renderStoreVisit();
+            renderInvoiceOptions();
+            renderSettlement();
+            renderRoute();
+            renderPlanoList();
+            renderPlanoAnalysis();
+            renderSetupStoreList();
+            renderMonitorStatus();
+            renderAlertHistory();
+            renderScanHistory();
+        }
+
+        function fmt$(n) { return '$' + (n < 0 ? '(' : '') + Math.abs(n).toFixed(2) + (n < 0 ? ')' : ''); }
+        function formatDate(d) { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function renderDashboard() {
+            const totalInv = state.inventory.reduce((s, i) => s + i.remaining, 0);
+            const totalSales = state.deliveries.reduce((s, d) => s + d.qty * d.price, 0);
+            const totalCredits = state.credits.reduce((s, c) => s + c.qty * c.price, 0);
+            const totalOwed = state.pickups.reduce((s, p) => s + p.qty * p.cost, 0);
+            const totalExp = state.expenses.gas + state.expenses.tolls + state.expenses.parking + state.expenses.other;
+            const gross = totalSales - totalCredits - totalOwed;
+            const net = gross - totalExp;
+            document.getElementById('dash-inventory').textContent = totalInv;
+            document.getElementById('dash-sales').textContent = fmt$(totalSales);
+            document.getElementById('dash-credits').textContent = fmt$(totalCredits);
+            document.getElementById('dash-owed').textContent = fmt$(totalOwed);
+            document.getElementById('dash-expenses').textContent = fmt$(totalExp);
+            document.getElementById('dash-gross').textContent = fmt$(gross);
+            document.getElementById('dash-net').textContent = fmt$(net);
+            const insights = [];
+            const nearExpiry = state.inventory.filter(i => {
+                const days = Math.ceil((new Date(i.expiry) - new Date()) / 86400000);
+                return days <= 5 && i.remaining > 0;
+            });
+            if (nearExpiry.length > 0) insights.push(`<strong>${nearExpiry.length} product(s)</strong> near expiration. Consider prioritizing delivery to avoid credits.`);
+            if (totalCredits > 15) insights.push(`Store credits are <strong>${fmt$(totalCredits)}</strong> this week. Review shelf rotation and plan-o-gram compliance.`);
+            if (net < 100) insights.push(`Net earnings are below target. Consider increasing store visits or reducing route expenses.`);
+            const bestStore = getBestStore();
+            if (bestStore) insights.push(`<strong>${bestStore.name}</strong> is your top-performing store this week. ${bestStore.sales > 0 ? 'Sales: ' + fmt$(bestStore.sales) : ''}`);
+            document.getElementById('dash-ai-insight').innerHTML = insights.length > 0 ? insights.join('<br><br>') : 'All metrics look good. FreshRoute AI is monitoring your route performance.';
+        }
+
+        function getBestStore() {
+            const storeSales = {};
+            state.deliveries.forEach(d => { storeSales[d.storeId] = (storeSales[d.storeId] || 0) + d.qty * d.price; });
+            let best = null, max = 0;
+            for (const [sid, sales] of Object.entries(storeSales)) {
+                if (sales > max) { max = sales; best = state.stores.find(s => s.id === sid); }
+            }
+            return best ? { ...best, sales: max } : null;
+        }
+
+        function addPickup() {
+            const product = document.getElementById('pickup-product').value;
+            const qty = parseInt(document.getElementById('pickup-qty').value) || 0;
+            const cost = parseFloat(document.getElementById('pickup-cost').value) || 0;
+            const shelfLife = parseInt(document.getElementById('pickup-shelf-life').value);
+            const date = document.getElementById('pickup-date').value;
+            if (!qty || !cost || !date) { showToast('Please fill all fields'); return; }
+            const expiry = new Date(date); expiry.setDate(expiry.getDate() + shelfLife);
+            const id = state.pickups.length > 0 ? Math.max(...state.pickups.map(p => p.id)) + 1 : 1;
+            const pickup = { id, product, qty, cost, shelfLife, date, expiry: expiry.toISOString().split('T')[0] };
+            state.pickups.push(pickup); state.inventory.push({ ...pickup, remaining: qty });
+            showToast(`${qty} ${product}(s) added to pickup`); renderAll();
+        }
+
+        function renderBOL() {
+            const tbody = document.getElementById('bol-table'); tbody.innerHTML = '';
+            let totalQty = 0, totalCost = 0;
+            state.pickups.forEach(p => {
+                totalQty += p.qty; totalCost += p.qty * p.cost;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${p.product} <span class="tag tag-exp-${p.shelfLife}">${p.shelfLife}d</span></td><td class="text-right">${p.qty}</td><td class="text-right">$${p.cost.toFixed(2)}</td><td class="text-right">$${(p.qty * p.cost).toFixed(2)}</td><td>${formatDate(p.expiry)}</td>`;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('bol-total-qty').textContent = totalQty;
+            document.getElementById('bol-total-cost').textContent = fmt$(totalCost);
+        }
+
+        function renderInventory() {
+            const container = document.getElementById('inventory-list');
+            if (state.inventory.length === 0) { container.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No inventory on truck</p></div>'; return; }
+            let html = '<div class="table-wrap"><table><thead><tr><th>Product</th><th class="text-right">Qty</th><th>Expires</th><th>Days Left</th></tr></thead><tbody>';
+            state.inventory.forEach(i => {
+                if (i.remaining <= 0) return;
+                const days = Math.ceil((new Date(i.expiry) - new Date()) / 86400000);
+                let cls = 'expiry-ok', badge = '<span class="badge badge-success">Good</span>';
+                if (days <= 3) { cls = 'expiry-warning'; badge = '<span class="badge badge-danger">Expires Soon!</span>'; }
+                else if (days <= 7) { cls = 'expiry-soon'; badge = '<span class="badge badge-warning">Expiring</span>'; }
+                html += `<tr><td><strong>${i.product}</strong><br><span class="tag tag-exp-${i.shelfLife}">${i.shelfLife}d shelf</span></td><td class="text-right ${cls}">${i.remaining}</td><td>${formatDate(i.expiry)}</td><td>${days} days ${badge}</td></tr>`;
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function renderStores() {
+            const container = document.getElementById('store-list'); container.innerHTML = '';
+            state.stores.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'store-card' + (state.selectedStore?.id === s.id ? ' selected' : '');
+                card.innerHTML = `<div class="store-card-header"><span class="store-name">${s.name}</span><span class="store-status badge badge-info">Open</span></div><div class="store-address">${s.address}</div>`;
+                card.onclick = () => selectStore(s); container.appendChild(card);
+            });
+        }
+
+        function selectStore(store) {
+            state.selectedStore = store;
+            document.getElementById('store-visit-panel').style.display = 'block';
+            document.getElementById('visit-store-name').textContent = store.name;
+            renderStores(); renderStoreVisit();
+        }
+
+        function renderStoreVisit() {
+            if (!state.selectedStore) return;
+            const s = state.selectedStore;
+            const pg = document.getElementById('planogram-grid'); pg.innerHTML = '';
+            for (const [prod, target] of Object.entries(s.planogram)) {
+                const current = state.deliveries.filter(d => d.storeId === s.id && d.product === prod).reduce((sum, d) => sum + d.qty, 0);
+                pg.innerHTML += `<div class="planogram-item"><div class="target">${prod}</div><div class="qty">${current} / ${target}</div><div class="progress-bar"><div class="progress-fill ${current >= target ? 'green' : current >= target * 0.6 ? 'yellow' : 'red'}" style="width:${Math.min(100, (current/target)*100)}%"></div></div></div>`;
+            }
+            const prodOpts = state.products.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('stock-product').innerHTML = prodOpts;
+            document.getElementById('credit-product').innerHTML = prodOpts;
+            const storeDeliveries = state.deliveries.filter(d => d.storeId === s.id);
+            const storeCredits = state.credits.filter(c => c.storeId === s.id);
+            const dTotal = storeDeliveries.reduce((sum, d) => sum + d.qty * d.price, 0);
+            const cTotal = storeCredits.reduce((sum, c) => sum + c.qty * c.price, 0);
+            const net = dTotal - cTotal;
+            let html = '';
+            if (storeDeliveries.length > 0) {
+                html += '<div style="font-weight:700; margin-bottom:8px; font-size:13px;">Deliveries</div>';
+                storeDeliveries.forEach(d => { html += `<div class="metric-row"><span class="metric-label">${d.product} x${d.qty}</span><span class="metric-value positive">$${(d.qty*d.price).toFixed(2)}</span></div>`; });
+            }
+            if (storeCredits.length > 0) {
+                html += '<div style="font-weight:700; margin:12px 0 8px; font-size:13px;">Credits</div>';
+                storeCredits.forEach(c => { html += `<div class="metric-row"><span class="metric-label">${c.product} x${c.qty}</span><span class="metric-value negative">-$${(c.qty*c.price).toFixed(2)}</span></div>`; });
+            }
+            html += '<div class="divider"></div>';
+            html += `<div class="metric-row"><span class="metric-label"><strong>Net for ${s.name}</strong></span><span class="metric-value">$${net.toFixed(2)}</span></div>`;
+            document.getElementById('visit-summary').innerHTML = html;
+        }
+
+        function addStocking() {
+            const product = document.getElementById('stock-product').value;
+            const qty = parseInt(document.getElementById('stock-qty').value) || 0;
+            const price = parseFloat(document.getElementById('stock-price').value) || 0;
+            if (!state.selectedStore || !qty || !price) { showToast('Please fill all fields'); return; }
+            const inv = state.inventory.find(i => i.product === product && i.remaining >= qty);
+            if (!inv) { showToast('Not enough inventory on truck'); return; }
+            inv.remaining -= qty;
+            const id = state.deliveries.length > 0 ? Math.max(...state.deliveries.map(d => d.id)) + 1 : 1;
+            state.deliveries.push({ id, storeId: state.selectedStore.id, product, qty, price, date: new Date().toISOString().split('T')[0] });
+            showToast(`${qty} ${product}(s) delivered to ${state.selectedStore.name}`); renderAll();
+        }
+
+        function addCredit() {
+            const product = document.getElementById('credit-product').value;
+            const qty = parseInt(document.getElementById('credit-qty').value) || 0;
+            const price = parseFloat(document.getElementById('credit-price').value) || 0;
+            if (!state.selectedStore || !qty || !price) { showToast('Please fill all fields'); return; }
+            const id = state.credits.length > 0 ? Math.max(...state.credits.map(c => c.id)) + 1 : 1;
+            state.credits.push({ id, storeId: state.selectedStore.id, product, qty, price, date: new Date().toISOString().split('T')[0] });
+            showToast(`Credit issued: ${qty} ${product}(s) at ${state.selectedStore.name}`); renderAll();
+        }
+
+        function renderInvoiceOptions() {
+            const sel = document.getElementById('invoice-store-select');
+            sel.innerHTML = state.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        }
+
+        function generateInvoice() {
+            const storeId = document.getElementById('invoice-store-select').value;
+            const store = state.stores.find(s => s.id === storeId);
+            const storeDeliveries = state.deliveries.filter(d => d.storeId === storeId);
+            const storeCredits = state.credits.filter(c => c.storeId === storeId);
+            const dTotal = storeDeliveries.reduce((sum, d) => sum + d.qty * d.price, 0);
+            const cTotal = storeCredits.reduce((sum, c) => sum + c.qty * c.price, 0);
+            const gross = dTotal; const net = gross - cTotal;
+            const now = new Date();
+            const invNum = `FR-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${storeId.toUpperCase()}`;
+            let itemsHtml = '';
+            storeDeliveries.forEach(d => { itemsHtml += `<div class="invoice-row"><span>${d.product} x ${d.qty}</span><span>$${(d.qty*d.price).toFixed(2)}</span></div>`; });
+            let creditsHtml = '';
+            if (storeCredits.length > 0) {
+                creditsHtml = '<div style="margin-top:12px; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Expired Product Credits</div>';
+                storeCredits.forEach(c => { creditsHtml += `<div class="invoice-row"><span>${c.product} x ${c.qty} (credit)</span><span>-$${(c.qty*c.price).toFixed(2)}</span></div>`; });
+            }
+            document.getElementById('invoice-display').innerHTML = `
+                <div class="card invoice-section">
+                    <div class="invoice-preview">
+                        <div class="invoice-header">
+                            <h2>🥐 FRESHROUTE DELIVERY TICKET</h2>
+                            <p>Invoice #${invNum}<br>${store.name}<br>${store.address}<br>${now.toLocaleString()}</p>
+                        </div>
+                        <div style="margin-bottom:12px;"><strong>Driver:</strong> ${state.driver.name} | <strong>Route:</strong> ${state.driver.route}</div>
+                        <div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Products Delivered</div>
+                        ${itemsHtml}${creditsHtml}
+                        <div class="invoice-total invoice-row"><span>Gross Amount</span><span>$${gross.toFixed(2)}</span></div>
+                        <div class="invoice-row"><span>Total Credits</span><span>-$${cTotal.toFixed(2)}</span></div>
+                        <div class="invoice-total invoice-row" style="font-size:16px; color:#059669;"><span>NET AMOUNT DUE</span><span>$${net.toFixed(2)}</span></div>
+                        <div class="signature-line">Store Manager Signature</div>
+                    </div>
+                    <div class="hidden-print" style="margin-top:16px; display:flex; gap:10px;">
+                        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Invoice</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('invoice-display').innerHTML=''">Clear</button>
+                    </div>
+                </div>`;
+        }
+
+        function renderSettlement() {
+            const totalSales = state.deliveries.reduce((s, d) => s + d.qty * d.price, 0);
+            const totalCredits = state.credits.reduce((s, c) => s + c.qty * c.price, 0);
+            const totalOwed = state.pickups.reduce((s, p) => s + p.qty * p.cost, 0);
+            const gross = totalSales - totalCredits - totalOwed;
+            const totalExp = state.expenses.gas + state.expenses.tolls + state.expenses.parking + state.expenses.other;
+            const net = gross - totalExp;
+            document.getElementById('settlement-sales').textContent = fmt$(totalSales);
+            document.getElementById('settlement-credits').textContent = fmt$(totalCredits);
+            document.getElementById('settlement-freezer').textContent = fmt$(totalOwed);
+            document.getElementById('settlement-gross').textContent = fmt$(gross);
+            document.getElementById('settlement-gas').textContent = fmt$(state.expenses.gas);
+            document.getElementById('settlement-tolls').textContent = fmt$(state.expenses.tolls);
+            document.getElementById('settlement-parking').textContent = fmt$(state.expenses.parking);
+            document.getElementById('settlement-other').textContent = fmt$(state.expenses.other);
+            const miles = state.expenses.endMileage - state.expenses.startMileage;
+            const mileageCost = miles * 0.655;
+            document.getElementById('settlement-mileage').textContent = fmt$(mileageCost);
+            document.getElementById('settlement-net').textContent = fmt$(net);
+        }
+
+        function drawSettlementChart() {
+            const canvas = document.getElementById('settlement-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            const w = rect.width, h = rect.height;
+            const totalSales = state.deliveries.reduce((s, d) => s + d.qty * d.price, 0);
+            const totalCredits = state.credits.reduce((s, c) => s + c.qty * c.price, 0);
+            const totalOwed = state.pickups.reduce((s, p) => s + p.qty * p.cost, 0);
+            const gross = totalSales - totalCredits - totalOwed;
+            const totalExp = state.expenses.gas + state.expenses.tolls + state.expenses.parking + state.expenses.other;
+            const miles = state.expenses.endMileage - state.expenses.startMileage;
+            const mileageCost = miles * 0.655;
+            const net = gross - totalExp - mileageCost;
+            const data = [
+                { label: 'Sales', value: totalSales, color: '#059669' },
+                { label: 'Credits', value: -totalCredits, color: '#dc2626' },
+                { label: 'Freezer', value: -totalOwed, color: '#b45309' },
+                { label: 'Gas', value: -state.expenses.gas, color: '#f59e0b' },
+                { label: 'Mileage', value: -mileageCost, color: '#d97706' },
+                { label: 'Tolls', value: -state.expenses.tolls, color: '#ef4444' },
+                { label: 'Parking', value: -state.expenses.parking, color: '#f97316' },
+                { label: 'Other', value: -state.expenses.other, color: '#fb923c' },
+                { label: 'Net', value: net, color: '#10b981' }
+            ];
+            const maxVal = Math.max(...data.map(d => Math.abs(d.value))) * 1.1;
+            const barW = (w - 60) / data.length - 8;
+            const zeroY = h / 2;
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#f1f5f9'; ctx.fillRect(0, zeroY, w, 1);
+            data.forEach((d, i) => {
+                const x = 30 + i * (barW + 8);
+                const barH = (Math.abs(d.value) / maxVal) * (h / 2 - 20);
+                const y = d.value >= 0 ? zeroY - barH : zeroY;
+                ctx.fillStyle = d.color;
+                ctx.beginPath(); ctx.roundRect(x, y, barW, barH, 4); ctx.fill();
+                ctx.fillStyle = '#64748b'; ctx.font = '10px Inter';
+                ctx.textAlign = 'center'; ctx.fillText(d.label, x + barW/2, h - 6);
+                ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10px Inter';
+                const valY = d.value >= 0 ? y - 6 : y + barH + 14;
+                ctx.fillText(fmt$(d.value), x + barW/2, valY);
+            });
+        }
+
+        function saveRouteExpenses() {
+            state.expenses.startMileage = parseFloat(document.getElementById('start-mileage').value) || 0;
+            state.expenses.endMileage = parseFloat(document.getElementById('end-mileage').value) || 0;
+            state.expenses.gas = parseFloat(document.getElementById('gas-cost').value) || 0;
+            state.expenses.tolls = parseFloat(document.getElementById('tolls-cost').value) || 0;
+            state.expenses.parking = parseFloat(document.getElementById('parking-cost').value) || 0;
+            state.expenses.other = parseFloat(document.getElementById('other-cost').value) || 0;
+            state.expenses.trafficNotes = document.getElementById('traffic-notes').value;
+            showToast('Route expenses saved'); renderAll();
+        }
+
+        function renderRoute() {
+            const miles = state.expenses.endMileage - state.expenses.startMileage;
+            const totalSales = state.deliveries.reduce((s, d) => s + d.qty * d.price, 0);
+            const totalCredits = state.credits.reduce((s, c) => s + c.qty * c.price, 0);
+            const totalOwed = state.pickups.reduce((s, p) => s + p.qty * p.cost, 0);
+            const gross = totalSales - totalCredits - totalOwed;
+            const totalExp = state.expenses.gas + state.expenses.tolls + state.expenses.parking + state.expenses.other;
+            const net = gross - totalExp;
+            const storesVisited = [...new Set(state.deliveries.map(d => d.storeId))].length;
+            document.getElementById('route-miles').textContent = miles;
+            document.getElementById('route-profit-mile').textContent = fmt$(miles > 0 ? net / miles : 0);
+            document.getElementById('route-stores').textContent = storesVisited;
+            document.getElementById('route-profit-store').textContent = fmt$(storesVisited > 0 ? net / storesVisited : 0);
+            const efficiency = Math.min(100, Math.max(0, (net / 200) * 100));
+            document.getElementById('route-efficiency').textContent = Math.round(efficiency) + '/100';
+            document.getElementById('efficiency-bar').style.width = efficiency + '%';
+            document.getElementById('efficiency-bar').className = 'progress-fill ' + (efficiency >= 70 ? 'green' : efficiency >= 40 ? 'yellow' : 'red');
+        }
+
+        function renderAIForecast() {
+            const totalSales = state.deliveries.reduce((s, d) => s + d.qty * d.price, 0);
+            const totalCredits = state.credits.reduce((s, c) => s + c.qty * c.price, 0);
+            const totalOwed = state.pickups.reduce((s, p) => s + p.qty * p.cost, 0);
+            const gross = totalSales - totalCredits - totalOwed;
+            const totalExp = state.expenses.gas + state.expenses.tolls + state.expenses.parking + state.expenses.other;
+            const net = gross - totalExp;
+            const miles = state.expenses.endMileage - state.expenses.startMileage;
+            const storesVisited = [...new Set(state.deliveries.map(d => d.storeId))].length;
+
+            // Recommendations
+            let recs = '';
+            const nearExpiry = state.inventory.filter(i => {
+                const days = Math.ceil((new Date(i.expiry) - new Date()) / 86400000);
+                return days <= 7 && i.remaining > 0;
+            });
+            if (nearExpiry.length > 0) {
+                recs += `<div class="recommendation-card danger"><div class="rec-title">⚠️ Expiration Alert</div><div class="rec-desc">${nearExpiry.length} product(s) expiring within 7 days. Prioritize delivery to <strong>7-Eleven Rockville</strong> first — it has the highest turnover.</div></div>`;
+            }
+            if (totalExp > 60) {
+                recs += `<div class="recommendation-card warning"><div class="rec-title">⛽ Gas Expense Warning</div><div class="rec-desc">Route expenses are ${fmt$(totalExp)}. Consider consolidating store visits or optimizing your route order to reduce mileage.</div></div>`;
+            }
+            if (net < 150) {
+                recs += `<div class="recommendation-card warning"><div class="rec-title">💡 Profitability Warning</div><div class="rec-desc">Net earnings are ${fmt$(net)}. FreshRoute AI recommends increasing store visits or negotiating better freezer pricing.</div></div>`;
+            }
+            if (totalCredits > 10) {
+                recs += `<div class="recommendation-card danger"><div class="rec-title">🗑️ High Credit Rate</div><div class="rec-desc">Credits are ${fmt$(totalCredits)}. Check shelf rotation compliance and ensure FIFO (first-in-first-out) stocking.</div></div>`;
+            }
+            recs += `<div class="recommendation-card"><div class="rec-title">🎯 Best Delivery Order</div><div class="rec-desc">Based on traffic patterns and store hours, AI suggests: <strong>7-Eleven Rockville → Shell Gaithersburg → Exxon Germantown</strong></div></div>`;
+            document.getElementById('ai-recommendations').innerHTML = recs || '<div class="recommendation-card"><div class="rec-title">✅ All Clear</div><div class="rec-desc">No critical alerts. Your route is performing well.</div></div>';
+
+            // Pickup recommendations
+            let pickupRecs = '';
+            state.products.forEach(prod => {
+                const picked = state.pickups.filter(p => p.product === prod).reduce((s, p) => s + p.qty, 0);
+                const delivered = state.deliveries.filter(d => d.product === prod).reduce((s, d) => s + d.qty, 0);
+                const remaining = picked - delivered;
+                const creditQty = state.credits.filter(c => c.product === prod).reduce((s, c) => s + c.qty, 0);
+                const nextWeek = Math.max(0, delivered + Math.round(remaining * 0.3) - creditQty);
+                const change = nextWeek - picked;
+                const changeCls = change > 0 ? 'up' : change < 0 ? 'down' : '';
+                const changeText = change > 0 ? `+${change}` : change < 0 ? `${change}` : 'No change';
+                const reason = change > 0 ? 'Demand trending up' : change < 0 ? 'Excess inventory detected' : 'Stable demand';
+                pickupRecs += `<div class="recommendation-card"><div class="rec-title">${prod}</div><div class="rec-desc">This week: <strong>${picked}</strong> | Next week: <strong>${nextWeek}</strong> <span class="rec-change ${changeCls}">(${changeText})</span><br><span style="color:#64748b">${reason}</span></div></div>`;
+            });
+            document.getElementById('ai-pickup-recs').innerHTML = pickupRecs;
+
+            // Weather
+            const month = new Date().getMonth();
+            const season = month >= 5 && month <= 8 ? 'Summer' : month >= 9 && month <= 10 ? 'Fall' : month >= 11 || month <= 2 ? 'Winter' : 'Spring';
+            const weatherDemand = season === 'Summer' ? 'Muffin demand up 15% (breakfast rush)' : season === 'Winter' ? 'Cinnamon Roll demand up 20% (comfort food trend)' : 'Stable demand across all products';
+            document.getElementById('ai-weather').innerHTML = `
+                <div class="recommendation-card"><div class="rec-title">🌡️ Current Season: ${season}</div><div class="rec-desc">${weatherDemand}</div></div>
+                <div class="recommendation-card warning"><div class="rec-title">⛈️ Weather Alert</div><div class="rec-desc">Thunderstorms forecast for Friday afternoon. Consider rescheduling afternoon deliveries or adding buffer time.</div></div>`;
+
+            // Performance
+            const bestStore = getBestStore();
+            const worstProduct = state.products.map(p => {
+                const delivered = state.deliveries.filter(d => d.product === p).reduce((s, d) => s + d.qty, 0);
+                const credited = state.credits.filter(c => c.product === p).reduce((s, c) => s + c.qty, 0);
+                return { product: p, delivered, credited, rate: delivered > 0 ? credited / delivered : 0 };
+            }).sort((a, b) => a.rate - b.rate)[0];
+
+            let perf = '';
+            if (bestStore) perf += `<div class="recommendation-card"><div class="rec-title">🏆 Best-Performing Store</div><div class="rec-desc"><strong>${bestStore.name}</strong> generated ${fmt$(bestStore.sales)} in sales this week. Consider increasing shelf space for high-turnover items.</div></div>`;
+            if (worstProduct) perf += `<div class="recommendation-card warning"><div class="rec-title">📉 Low-Performing Product</div><div class="rec-desc"><strong>${worstProduct.product}</strong> has the highest credit rate (${(worstProduct.rate * 100).toFixed(0)}%). Review shelf placement and expiration rotation.</div></div>`;
+            perf += `<div class="recommendation-card"><div class="rec-title">📊 Route Profitability</div><div class="rec-desc">Net earnings: <strong>${fmt$(net)}</strong> | Per mile: <strong>${fmt$(miles > 0 ? net / miles : 0)}</strong> | Per store: <strong>${fmt$(storesVisited > 0 ? net / storesVisited : 0)}</strong></div></div>`;
+            document.getElementById('ai-performance').innerHTML = perf;
+        }
+
+
+        // ─── NEXT WEEK ORDER LOGIC ───
+        function generateOrder() {
+            const truckMax = parseInt(document.getElementById('truck-max-units').value) || 120;
+            const totalSales = state.deliveries.reduce((s, d) => s + d.qty * d.price, 0);
+            const totalCredits = state.credits.reduce((s, c) => s + c.qty * c.price, 0);
+            const totalOwed = state.pickups.reduce((s, p) => s + p.qty * p.cost, 0);
+            const gross = totalSales - totalCredits - totalOwed;
+            const totalExp = state.expenses.gas + state.expenses.tolls + state.expenses.parking + state.expenses.other;
+            const net = gross - totalExp;
+            const storesVisited = [...new Set(state.deliveries.map(d => d.storeId))].length;
+            const miles = state.expenses.endMileage - state.expenses.startMileage;
+
+            // AI analysis factors
+            const season = (() => {
+                const m = new Date().getMonth();
+                return m >= 5 && m <= 8 ? 'Summer' : m >= 9 && m <= 10 ? 'Fall' : m >= 11 || m <= 2 ? 'Winter' : 'Spring';
+            })();
+
+            const orderRecs = [];
+            let totalUnits = 0;
+            let totalCost = 0;
+
+            state.products.forEach(prod => {
+                const picked = state.pickups.filter(p => p.product === prod).reduce((s, p) => s + p.qty, 0);
+                const delivered = state.deliveries.filter(d => d.product === prod).reduce((s, d) => s + d.qty, 0);
+                const remaining = picked - delivered;
+                const creditQty = state.credits.filter(c => c.product === prod).reduce((s, c) => s + c.qty, 0);
+                const cost = state.pickups.find(p => p.product === prod)?.cost || 1.25;
+                const shelfLife = state.pickups.find(p => p.product === prod)?.shelfLife || 21;
+
+                // AI recommendation logic
+                let nextWeek = 0;
+                let reason = '';
+
+                if (remaining <= 3) {
+                    nextWeek = Math.max(12, delivered + 6);
+                    reason = 'Low truck inventory. Restock needed.';
+                } else if (creditQty > 0) {
+                    nextWeek = Math.max(6, delivered - creditQty);
+                    reason = 'High credit rate detected. Reduce order to minimize waste.';
+                } else if (season === 'Summer' && prod === 'Muffin') {
+                    nextWeek = Math.round(delivered * 1.15);
+                    reason = 'Summer demand trend: +15% Muffin sales expected.';
+                } else if (season === 'Winter' && prod === 'Cinnamon Roll') {
+                    nextWeek = Math.round(delivered * 1.20);
+                    reason = 'Winter comfort trend: +20% Cinnamon Roll demand.';
+                } else if (delivered > 0) {
+                    nextWeek = Math.round(delivered * 1.05);
+                    reason = 'Stable demand. Slight increase for growth.';
+                } else {
+                    nextWeek = 12;
+                    reason = 'No prior delivery data. Default starting quantity.';
+                }
+
+                // Adjust for shelf life
+                if (shelfLife === 21 && nextWeek > 24) {
+                    nextWeek = 24;
+                    reason += ' Capped at 24 due to 21-day shelf life.';
+                }
+
+                const change = nextWeek - picked;
+                orderRecs.push({ product: prod, nextWeek, change, cost, reason, shelfLife });
+                totalUnits += nextWeek;
+                totalCost += nextWeek * cost;
+            });
+
+            // Check truck capacity and split if needed
+            const needsSplit = totalUnits > truckMax;
+            let pickup1 = [];
+            let pickup2 = [];
+
+            if (needsSplit) {
+                let running = 0;
+                orderRecs.forEach(r => {
+                    if (running + r.nextWeek <= truckMax) {
+                        pickup1.push({ ...r, qty: r.nextWeek });
+                        running += r.nextWeek;
+                    } else {
+                        const remainingSpace = truckMax - running;
+                        if (remainingSpace > 0) {
+                            pickup1.push({ ...r, qty: remainingSpace });
+                            pickup2.push({ ...r, qty: r.nextWeek - remainingSpace });
+                            running = truckMax;
+                        } else {
+                            pickup2.push({ ...r, qty: r.nextWeek });
+                        }
+                    }
+                });
+            } else {
+                pickup1 = orderRecs.map(r => ({ ...r, qty: r.nextWeek }));
+            }
+
+            // Render order output
+            let html = '';
+            const renderTable = (items, label) => {
+                if (items.length === 0) return '';
+                let h = `<div style="margin-bottom:16px;"><div style="font-weight:700; font-size:13px; margin-bottom:8px; color:#b45309;">${label}</div>`;
+                h += '<div class="table-wrap"><table><thead><tr><th>Product</th><th class="text-right">Qty</th><th class="text-right">Unit $</th><th class="text-right">Total</th><th>Reason</th></tr></thead><tbody>';
+                items.forEach(r => {
+                    const changeCls = r.change > 0 ? 'up' : r.change < 0 ? 'down' : '';
+                    const changeText = r.change > 0 ? `+${r.change}` : r.change < 0 ? `${r.change}` : '—';
+                    h += `<tr><td><strong>${r.product}</strong> <span class="tag tag-exp-${r.shelfLife}">${r.shelfLife}d</span></td><td class="text-right">${r.qty}</td><td class="text-right">$${r.cost.toFixed(2)}</td><td class="text-right">$${(r.qty * r.cost).toFixed(2)}</td><td style="font-size:11px; color:#64748b;">${r.reason}<br><span class="rec-change ${changeCls}">(${changeText} from last week)</span></td></tr>`;
+                });
+                h += '</tbody></table></div></div>';
+                return h;
+            };
+
+            html += renderTable(pickup1, '🚚 Pickup 1');
+            if (needsSplit) html += renderTable(pickup2, '🚚 Pickup 2 (Split Order)');
+
+            document.getElementById('order-output').innerHTML = html;
+            document.getElementById('order-total-units').textContent = totalUnits;
+            document.getElementById('order-total-cost').textContent = fmt$(totalCost);
+            document.getElementById('order-recommendation').style.display = 'block';
+            document.getElementById('order-split-notice').style.display = needsSplit ? 'block' : 'none';
+            document.getElementById('email-preview-card').style.display = 'block';
+
+            // Update email preview
+            const nextPickup = new Date();
+            nextPickup.setDate(nextPickup.getDate() + ((1 + 7 - nextPickup.getDay()) % 7 || 7));
+            document.getElementById('email-pickup-date').textContent = nextPickup.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('email-driver-name').textContent = state.driver.name;
+            document.getElementById('email-route-name').textContent = state.driver.route;
+
+            let emailTable = '';
+            pickup1.forEach(r => {
+                emailTable += `<tr><td>${r.product}</td><td class="text-right">${r.qty}</td><td class="text-right">$${r.cost.toFixed(2)}</td><td class="text-right">$${(r.qty * r.cost).toFixed(2)}</td><td>Pickup 1</td></tr>`;
+            });
+            if (needsSplit) {
+                pickup2.forEach(r => {
+                    emailTable += `<tr><td>${r.product}</td><td class="text-right">${r.qty}</td><td class="text-right">$${r.cost.toFixed(2)}</td><td class="text-right">$${(r.qty * r.cost).toFixed(2)}</td><td>Pickup 2</td></tr>`;
+                });
+            }
+            document.getElementById('email-order-table').innerHTML = emailTable;
+
+            // Update truck capacity bar
+            const usedPct = Math.min(100, (totalUnits / truckMax) * 100);
+            document.getElementById('truck-available').textContent = `${Math.max(0, truckMax - totalUnits)} units available`;
+            document.getElementById('truck-capacity-bar').style.width = usedPct + '%';
+            document.getElementById('truck-capacity-bar').className = 'progress-fill ' + (usedPct > 90 ? 'red' : usedPct > 70 ? 'yellow' : 'green');
+
+            showToast('AI order generated successfully');
+        }
+
+        function sendOrderEmail() {
+            showToast('Order email prepared/sent for demo. (Mock send — no actual email sent)');
+            document.getElementById('email-preview-card').style.display = 'none';
+        }
+
+        function generateEmergencyOrder() {
+            const product = document.getElementById('emergency-product').value;
+            const qty = parseInt(document.getElementById('emergency-qty').value) || 0;
+            const date = document.getElementById('emergency-date').value;
+            const reason = document.getElementById('emergency-reason').value || 'Urgent restock needed';
+            if (!qty || !date) { showToast('Please fill all fields'); return; }
+
+            const cost = state.pickups.find(p => p.product === product)?.cost || 1.25;
+            const total = qty * cost;
+
+            document.getElementById('emergency-output').innerHTML = `
+                <div style="margin-bottom:8px;"><strong>Product:</strong> ${product}</div>
+                <div style="margin-bottom:8px;"><strong>Quantity:</strong> ${qty} units</div>
+                <div style="margin-bottom:8px;"><strong>Unit Cost:</strong> $${cost.toFixed(2)}</div>
+                <div style="margin-bottom:8px;"><strong>Total Cost:</strong> $${total.toFixed(2)}</div>
+                <div style="margin-bottom:8px;"><strong>Requested Pickup:</strong> ${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                <div><strong>Reason:</strong> ${reason}</div>
+            `;
+            document.getElementById('emergency-preview').style.display = 'block';
+        }
+
+        function sendEmergencyOrder() {
+            showToast('Emergency order email prepared/sent for demo. (Mock send — no actual email sent)');
+            document.getElementById('emergency-preview').style.display = 'none';
+            document.getElementById('emergency-qty').value = '12';
+            document.getElementById('emergency-reason').value = '';
+        }
+
+        // Set default emergency date to tomorrow
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('emergency-date').value = tomorrow.toISOString().split('T')[0];
+
+
+        // ─── PLAN-O-GRAM UPLOAD LOGIC ───
+        const planoStoreData = {};
+
+        function initPlanoStoreSelect() {
+            const sel = document.getElementById('plano-store-select');
+            sel.innerHTML = state.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        }
+
+        function previewPlano() {
+            const input = document.getElementById('plano-file');
+            const file = input.files[0];
+            if (!file) return;
+            if (!file.type.match('image.*')) { showToast('Please select an image file'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('plano-preview-img').src = e.target.result;
+                document.getElementById('plano-preview-wrap').style.display = 'block';
+                document.getElementById('plano-file-info').textContent = `${file.name} • ${(file.size/1024).toFixed(1)} KB • ${file.type}`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function savePlano() {
+            const storeId = document.getElementById('plano-store-select').value;
+            const store = state.stores.find(s => s.id === storeId);
+            const slots = parseInt(document.getElementById('plano-slots').value) || 24;
+            const depth = parseInt(document.getElementById('plano-depth').value) || 12;
+            const facing = parseInt(document.getElementById('plano-facing').value) || 2;
+            const perShelf = parseInt(document.getElementById('plano-per-shelf').value) || 5;
+            const imgSrc = document.getElementById('plano-preview-img').src;
+            const hasImage = imgSrc && imgSrc.length > 100;
+
+            planoStoreData[storeId] = {
+                storeId, storeName: store.name, slots, depth, facing, perShelf,
+                image: hasImage ? imgSrc : null, savedAt: new Date().toISOString()
+            };
+
+            showToast(`Plan-o-gram saved for ${store.name}`);
+            renderPlanoList();
+            renderPlanoAnalysis();
+
+            // Reset file input
+            document.getElementById('plano-file').value = '';
+            document.getElementById('plano-preview-wrap').style.display = 'none';
+        }
+
+        function renderPlanoList() {
+            const container = document.getElementById('plano-list');
+            const entries = Object.values(planoStoreData);
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📸</div><p>No plan-o-grams uploaded yet</p></div>';
+                return;
+            }
+            let html = '';
+            entries.forEach(p => {
+                html += `<div class="store-card" style="display:flex; gap:12px; align-items:center;">
+                    <div style="flex:1;">
+                        <div class="store-name">${p.storeName}</div>
+                        <div class="store-address">Slots: ${p.slots} • Depth: ${p.depth}" • Facing: ${p.facing} • Products/Shelf: ${p.perShelf}</div>
+                        <div style="font-size:11px; color:var(--text-light); margin-top:4px;">Saved: ${new Date(p.savedAt).toLocaleString()}</div>
+                    </div>
+                    ${p.image ? `<img src="${p.image}" style="width:80px; height:60px; object-fit:cover; border-radius:6px; border:1px solid var(--border);">` : ''}
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderPlanoAnalysis() {
+            const container = document.getElementById('plano-analysis');
+            const entries = Object.values(planoStoreData);
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>Upload plan-o-grams to see AI shelf space analysis</p></div>';
+                return;
+            }
+
+            let html = '';
+            entries.forEach(p => {
+                const totalCapacity = p.slots * p.facing;
+                const currentProducts = Object.keys(state.stores.find(s => s.id === p.storeId)?.planogram || {}).length;
+                const utilization = Math.round((currentProducts / p.perShelf) * 100);
+                const shelfEfficiency = Math.round((totalCapacity / (p.slots * p.perShelf)) * 100);
+
+                // AI analysis based on plan-o-gram
+                const storeDeliveries = state.deliveries.filter(d => d.storeId === p.storeId);
+                const storeCredits = state.credits.filter(c => c.storeId === p.storeId);
+                const dTotal = storeDeliveries.reduce((sum, d) => sum + d.qty * d.price, 0);
+                const cTotal = storeCredits.reduce((sum, c) => sum + c.qty * c.price, 0);
+                const net = dTotal - cTotal;
+
+                let insights = '';
+                if (utilization > 90) {
+                    insights += `<div class="recommendation-card warning"><div class="rec-title">⚠️ Shelf Space Critical</div><div class="rec-desc">${p.storeName} is at ${utilization}% utilization. Consider reducing slow-moving SKUs or requesting additional shelf space.</div></div>`;
+                } else if (utilization < 50) {
+                    insights += `<div class="recommendation-card"><div class="rec-title">💡 Underutilized Space</div><div class="rec-desc">${p.storeName} has room for ${p.perShelf - currentProducts} more products. Consider adding high-margin items like Cinnamon Rolls.</div></div>`;
+                }
+                if (cTotal > 5) {
+                    insights += `<div class="recommendation-card danger"><div class="rec-title">🗑️ Rotation Issue Detected</div><div class="rec-desc">Credits at ${p.storeName}: ${fmt$(cTotal)}. With ${p.facing} facings and ${p.depth}" depth, ensure FIFO rotation and check if facing count is too high for turnover rate.</div></div>`;
+                }
+                if (net > 30) {
+                    insights += `<div class="recommendation-card"><div class="rec-title">🏆 High Performer</div><div class="rec-desc">${p.storeName} net sales: ${fmt$(net)}. Shelf layout is working well. Maintain current plan-o-gram.</div></div>`;
+                }
+                if (!insights) {
+                    insights = `<div class="recommendation-card"><div class="rec-title">✅ Balanced</div><div class="rec-desc">${p.storeName} shelf space and turnover appear well balanced.</div></div>`;
+                }
+
+                html += `<div style="margin-bottom:16px;">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:8px;">${p.storeName}</div>
+                    <div class="stat-grid" style="margin-bottom:10px;">
+                        <div class="stat-card blue">
+                            <div class="stat-label">Total Shelf Slots</div>
+                            <div class="stat-value small">${p.slots}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Capacity</div>
+                            <div class="stat-value small">${totalCapacity} units</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-label">Space Utilization</div>
+                            <div class="stat-value small">${utilization}%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Shelf Efficiency</div>
+                            <div class="stat-value small">${shelfEfficiency}%</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="margin-bottom:12px;">
+                        <div class="progress-fill ${utilization > 90 ? 'red' : utilization > 70 ? 'yellow' : 'green'}" style="width:${utilization}%"></div>
+                    </div>
+                    ${insights}
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+
+        // ─── ROUTE & STORE SETUP LOGIC ───
+        const setupData = {
+            home: { address: '123 Main St, Rockville, MD 20852', lat: 39.0839, lng: -77.1530, startTime: '05:00' },
+            freezer: { name: 'North Montgomery Freezer', address: '4500 Randolph Rd, Rockville, MD 20852', lat: 39.0625, lng: -77.1080, contact: 'Mike Torres', phone: '(301) 555-0142', hours: 'Mon-Fri 4:00 AM - 8:00 AM' },
+            stores: []
+        };
+
+        // Load sample stores into setup
+        function loadSetupSampleStores() {
+            setupData.stores = [
+                { id: 'setup-s1', name: '7-Eleven Rockville', address: '1520 Rockville Pike, Rockville, MD 20852', lat: 39.0839, lng: -77.1200, phone: '(301) 555-0101', frequency: '2x-week', days: ['Wed','Fri'], windowStart: '06:00', windowEnd: '14:00', slots: 24 },
+                { id: 'setup-s2', name: 'Shell Gaithersburg', address: '890 Quince Orchard Rd, Gaithersburg, MD 20878', lat: 39.1412, lng: -77.2210, phone: '(301) 555-0102', frequency: '2x-week', days: ['Wed','Fri'], windowStart: '07:00', windowEnd: '15:00', slots: 20 },
+                { id: 'setup-s3', name: 'Exxon Germantown', address: '19700 Germantown Rd, Germantown, MD 20874', lat: 39.1732, lng: -77.2714, phone: '(301) 555-0103', frequency: '2x-week', days: ['Wed','Fri'], windowStart: '06:30', windowEnd: '14:30', slots: 18 }
+            ];
+        }
+
+        function addSetupStore() {
+            const name = document.getElementById('setup-store-name').value.trim();
+            const address = document.getElementById('setup-store-address').value.trim();
+            const phone = document.getElementById('setup-store-phone').value.trim();
+            const lat = parseFloat(document.getElementById('setup-store-lat').value);
+            const lng = parseFloat(document.getElementById('setup-store-lng').value);
+            const frequency = document.getElementById('setup-store-frequency').value;
+            const windowStart = document.getElementById('setup-store-window-start').value;
+            const windowEnd = document.getElementById('setup-store-window-end').value;
+            const slots = parseInt(document.getElementById('setup-store-slots').value) || 24;
+
+            const days = [];
+            ['mon','tue','wed','thu','fri','sat','sun'].forEach(d => {
+                if (document.getElementById('store-day-' + d)?.checked) days.push(d.charAt(0).toUpperCase() + d.slice(1));
+            });
+
+            if (!name || !address || isNaN(lat) || isNaN(lng)) { showToast('Please fill name, address, and coordinates'); return; }
+
+            const id = 'setup-' + Date.now();
+            setupData.stores.push({ id, name, address, lat, lng, phone, frequency, days, windowStart, windowEnd, slots });
+            showToast(`${name} added to your route`);
+            renderSetupStoreList();
+
+            // Reset form
+            document.getElementById('setup-store-name').value = '';
+            document.getElementById('setup-store-address').value = '';
+            document.getElementById('setup-store-phone').value = '';
+            document.getElementById('setup-store-lat').value = '';
+            document.getElementById('setup-store-lng').value = '';
+        }
+
+        function removeSetupStore(id) {
+            setupData.stores = setupData.stores.filter(s => s.id !== id);
+            renderSetupStoreList();
+            showToast('Store removed');
+        }
+
+        function renderSetupStoreList() {
+            const container = document.getElementById('setup-store-list');
+            if (setupData.stores.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🏪</div><p>No stores added yet</p></div>';
+                return;
+            }
+            let html = '';
+            setupData.stores.forEach(s => {
+                const distFromHome = haversine(setupData.home.lat, setupData.home.lng, s.lat, s.lng).toFixed(1);
+                const distFromFreezer = haversine(setupData.freezer.lat, setupData.freezer.lng, s.lat, s.lng).toFixed(1);
+                html += `<div class="store-card" style="position:relative;">
+                    <div style="position:absolute; top:10px; right:10px; cursor:pointer; font-size:18px; color:var(--danger);" onclick="removeSetupStore('${s.id}')">🗑️</div>
+                    <div class="store-name">${s.name}</div>
+                    <div class="store-address">${s.address}</div>
+                    <div style="font-size:12px; color:var(--text-light); margin-top:4px;">
+                        📞 ${s.phone || 'N/A'} • 🕐 ${s.windowStart}-${s.windowEnd} • 📅 ${s.frequency} (${s.days.join(', ')})<br>
+                        📍 ${distFromHome} mi from home • ${distFromFreezer} mi from freezer • ${s.slots} shelf slots
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // Update inventory display
+            const totalInv = state.inventory.reduce((sum, i) => sum + i.remaining, 0);
+            document.getElementById('route-setup-inventory').textContent = `${totalInv} units on truck`;
+        }
+
+        // Haversine distance in miles
+        function haversine(lat1, lng1, lat2, lng2) {
+            const R = 3959; // Earth radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function calculateOptimalRoute() {
+            const day = document.getElementById('route-day-select').value;
+            const dayShort = day.substring(0, 3);
+            const totalInv = state.inventory.reduce((sum, i) => sum + i.remaining, 0);
+            const needsPickup = totalInv < 30; // Threshold for needing freezer pickup
+
+            // Find stores scheduled for this day
+            const todayStores = setupData.stores.filter(s => s.days.includes(dayShort));
+            if (todayStores.length === 0) {
+                document.getElementById('route-output').innerHTML = `<div class="recommendation-card warning"><div class="rec-title">📅 No Deliveries Today</div><div class="rec-desc">No stores are scheduled for ${day}. Check your store delivery days.</div></div>`;
+                document.getElementById('route-result').style.display = 'block';
+                return;
+            }
+
+            // Build route waypoints
+            const waypoints = [];
+            const home = setupData.home;
+            const freezer = setupData.freezer;
+
+            // Decide: freezer first or stores first?
+            let routeOrder = [];
+            let decisionReason = '';
+
+            if (needsPickup) {
+                routeOrder = ['freezer', ...todayStores];
+                decisionReason = `Truck inventory is low (${totalInv} units). FreshRoute AI recommends <strong>freezer pickup first</strong> to ensure full stock for all ${todayStores.length} stores.`;
+            } else {
+                // Check if any store is far from freezer but close to home
+                const avgDistHome = todayStores.reduce((sum, s) => sum + haversine(home.lat, home.lng, s.lat, s.lng), 0) / todayStores.length;
+                const avgDistFreezer = todayStores.reduce((sum, s) => sum + haversine(freezer.lat, freezer.lng, s.lat, s.lng), 0) / todayStores.length;
+
+                if (avgDistHome < avgDistFreezer) {
+                    // Stores closer to home — do stores first, freezer last if needed for next day
+                    routeOrder = [...todayStores];
+                    if (totalInv < 60) routeOrder.push('freezer');
+                    decisionReason = `Stores are closer to home than freezer. FreshRoute AI recommends <strong>stores first</strong> to minimize backtracking. ${totalInv < 60 ? 'Quick freezer stop added for next-day prep.' : ''}`;
+                } else {
+                    routeOrder = ['freezer', ...todayStores];
+                    decisionReason = `Freezer is centrally located. FreshRoute AI recommends <strong>freezer first</strong> for efficient outbound distribution.`;
+                }
+            }
+
+            // Optimize order within stores using nearest-neighbor (simple TSP)
+            const storesInRoute = routeOrder.filter(w => w !== 'freezer');
+            const optimizedStores = optimizeStoreOrder(storesInRoute, needsPickup ? freezer : home);
+
+            // Rebuild final route
+            const finalRoute = needsPickup || routeOrder[0] === 'freezer'
+                ? ['freezer', ...optimizedStores]
+                : [...optimizedStores, ...(totalInv < 60 ? ['freezer'] : [])];
+
+            // Calculate distances and times
+            let totalDist = 0;
+            let prev = home;
+            const routeDetails = [];
+
+            finalRoute.forEach((wp, idx) => {
+                if (wp === 'freezer') {
+                    const dist = haversine(prev.lat, prev.lng, freezer.lat, freezer.lng);
+                    totalDist += dist;
+                    routeDetails.push({
+                        type: 'freezer', name: freezer.name, address: freezer.address,
+                        dist: dist.toFixed(1), time: Math.round(dist / 35 * 60), // 35 mph avg
+                        action: needsPickup ? 'Pick up fresh stock' : 'Pre-load for tomorrow',
+                        eta: calculateETA(prev, freezer, 35)
+                    });
+                    prev = freezer;
+                } else {
+                    const dist = haversine(prev.lat, prev.lng, wp.lat, wp.lng);
+                    totalDist += dist;
+                    const storeInv = state.deliveries.filter(d => d.storeId === wp.id.replace('setup-','')).reduce((sum, d) => sum + d.qty, 0);
+                    routeDetails.push({
+                        type: 'store', name: wp.name, address: wp.address,
+                        dist: dist.toFixed(1), time: Math.round(dist / 35 * 60),
+                        action: `Deliver ${storeInv > 0 ? storeInv + ' units' : 'fresh stock'}`,
+                        window: `${wp.windowStart}-${wp.windowEnd}`,
+                        eta: calculateETA(prev, wp, 35)
+                    });
+                    prev = wp;
+                }
+            });
+
+            // Return home
+            const last = prev === freezer ? freezer : prev;
+            const returnDist = haversine(last.lat, last.lng, home.lat, home.lng);
+            totalDist += returnDist;
+            routeDetails.push({
+                type: 'home', name: 'Home / End', address: home.address,
+                dist: returnDist.toFixed(1), time: Math.round(returnDist / 35 * 60),
+                action: 'Route complete', eta: 'End of day'
+            });
+
+            // Render route
+            let html = `<div class="recommendation-card"><div class="rec-title">🧠 AI Route Decision</div><div class="rec-desc">${decisionReason}</div></div>`;
+            html += `<div style="margin:16px 0;"><div style="font-weight:700; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light);">Route for ${day}</div>`;
+
+            routeDetails.forEach((step, idx) => {
+                const icon = step.type === 'freezer' ? '❄️' : step.type === 'home' ? '🏠' : '🏪';
+                const color = step.type === 'freezer' ? '#3b82f6' : step.type === 'home' ? '#059669' : '#d97706';
+                html += `<div style="display:flex; gap:12px; margin-bottom:12px; align-items:flex-start;">
+                    <div style="width:36px; height:36px; border-radius:50%; background:${color}15; color:${color}; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">${icon}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:13px;">${step.name}</div>
+                        <div style="font-size:12px; color:var(--text-light);">${step.address}</div>
+                        <div style="font-size:11px; color:var(--text-light); margin-top:2px;">
+                            ${step.type !== 'home' ? `📍 ${step.dist} mi • ⏱️ ~${step.time} min` : ''}
+                            ${step.window ? ` • 🕐 Window: ${step.window}` : ''}
+                            ${step.eta ? ` • 🚗 ETA: ${step.eta}` : ''}
+                        </div>
+                        <div style="font-size:12px; color:#b45309; margin-top:2px; font-weight:600;">${step.action}</div>
+                    </div>
+                    <div style="font-weight:800; font-size:14px; color:var(--text);">${idx + 1}</div>
+                </div>`;
+                if (idx < routeDetails.length - 1) {
+                    html += `<div style="width:2px; height:20px; background:var(--border); margin-left:17px; margin-bottom:4px;"></div>`;
+                }
+            });
+            html += '</div>';
+
+            // Summary stats
+            const totalTime = routeDetails.reduce((sum, s) => sum + (parseFloat(s.time) || 0), 0);
+            const gasCost = (totalDist / 20 * 3.50).toFixed(2); // 20 mpg, $3.50/gal
+            html += `<div class="divider"></div>
+            <div class="stat-grid" style="margin-top:12px;">
+                <div class="stat-card blue">
+                    <div class="stat-label">Total Distance</div>
+                    <div class="stat-value small">${totalDist.toFixed(1)} mi</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Drive Time</div>
+                    <div class="stat-value small">${Math.round(totalTime)} min</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Stops Today</div>
+                    <div class="stat-value small">${todayStores.length}</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-label">Est. Gas</div>
+                    <div class="stat-value small">$${gasCost}</div>
+                </div>
+            </div>
+            <div style="margin-top:12px; font-size:12px; color:var(--text-light); text-align:center;">
+                🚦 Live traffic API integration coming soon — ETA will adjust in real-time
+            </div>`;
+
+            document.getElementById('route-output').innerHTML = html;
+            document.getElementById('route-result').style.display = 'block';
+        }
+
+        function optimizeStoreOrder(stores, startPoint) {
+            if (stores.length <= 1) return stores;
+            const unvisited = [...stores];
+            const ordered = [];
+            let current = startPoint;
+            while (unvisited.length > 0) {
+                let nearest = null; let minDist = Infinity;
+                unvisited.forEach((s, i) => {
+                    const d = haversine(current.lat, current.lng, s.lat, s.lng);
+                    if (d < minDist) { minDist = d; nearest = i; }
+                });
+                ordered.push(unvisited[nearest]);
+                current = unvisited[nearest];
+                unvisited.splice(nearest, 1);
+            }
+            return ordered;
+        }
+
+        function calculateETA(from, to, speedMph) {
+            const dist = haversine(from.lat, from.lng, to.lat, to.lng);
+            const hours = dist / speedMph;
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + Math.round(hours * 60) + 15); // +15 min per stop buffer
+            return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+
+        // ─── DELIVERY MONITORING & ALERTS LOGIC ───
+        let geoWatchId = null;
+        let currentDriverLocation = null;
+        const alertHistory = [];
+        let alertSettings = {
+            lateThreshold: 15,
+            missedThreshold: 2,
+            recipients: { store: true, freezer: true, dispatcher: false }
+        };
+
+        function initMonitorStoreSelect() {
+            const sel = document.getElementById('monitor-store-select');
+            if (!sel) return;
+            sel.innerHTML = state.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        }
+
+        function startLiveMonitoring() {
+            if (!navigator.geolocation) {
+                showToast('Geolocation not supported by this browser');
+                return;
+            }
+            if (geoWatchId !== null) {
+                navigator.geolocation.clearWatch(geoWatchId);
+            }
+            geoWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    currentDriverLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        timestamp: position.timestamp,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed
+                    };
+                    checkRouteProgress();
+                    renderMonitorStatus();
+                },
+                (error) => {
+                    console.error('Geolocation error:', error);
+                    showToast('Location tracking error: ' + error.message);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+            );
+            showToast('Live route monitoring started');
+        }
+
+        function stopLiveMonitoring() {
+            if (geoWatchId !== null) {
+                navigator.geolocation.clearWatch(geoWatchId);
+                geoWatchId = null;
+                showToast('Live monitoring stopped');
+            }
+        }
+
+        function checkRouteProgress() {
+            if (!currentDriverLocation || setupData.stores.length === 0) return;
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            const dayShort = today.substring(0, 3);
+            const scheduledStores = setupData.stores.filter(s => s.days.includes(dayShort));
+
+            scheduledStores.forEach(store => {
+                const dist = haversine(currentDriverLocation.lat, currentDriverLocation.lng, store.lat, store.lng);
+                const windowEnd = parseTime(store.windowEnd);
+                const now = new Date();
+                const minutesLate = Math.max(0, (now - windowEnd) / 60000);
+
+                // Check if driver is at store (within 0.1 miles)
+                const isAtStore = dist < 0.1;
+                const wasDelivered = state.deliveries.some(d => d.storeId === store.id.replace('setup-',''));
+
+                if (!wasDelivered && !isAtStore && minutesLate > alertSettings.lateThreshold) {
+                    // Auto-generate late alert if not already sent
+                    if (!alertHistory.some(a => a.storeId === store.id && a.type === 'delay' && a.date === today)) {
+                        generateAutoAlert(store, 'delay', minutesLate, 'Driver is running late based on GPS location and delivery window.');
+                    }
+                }
+
+                if (!wasDelivered && minutesLate > alertSettings.missedThreshold * 60) {
+                    // Auto-generate missed alert
+                    if (!alertHistory.some(a => a.storeId === store.id && a.type === 'missed' && a.date === today)) {
+                        generateAutoAlert(store, 'missed', minutesLate, 'Driver has not arrived within missed delivery threshold.');
+                    }
+                }
+            });
+        }
+
+        function parseTime(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            const d = new Date();
+            d.setHours(h, m, 0, 0);
+            return d;
+        }
+
+        function generateAutoAlert(store, issueType, minutesLate, aiReason) {
+            const now = new Date();
+            const alert = {
+                id: Date.now(),
+                storeId: store.id,
+                storeName: store.name,
+                type: issueType,
+                minutesLate: Math.round(minutesLate),
+                date: now.toLocaleDateString('en-US', { weekday: 'long' }),
+                time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                aiReason: aiReason,
+                autoGenerated: true,
+                sent: false
+            };
+            alertHistory.unshift(alert);
+            renderAlertHistory();
+            renderMonitorStatus();
+            showToast(`AI Alert: ${store.name} — ${issueType === 'delay' ? 'Running Late' : 'Missed Delivery'}`);
+        }
+
+        function simulateDeliveryIssue() {
+            const storeId = document.getElementById('monitor-store-select').value;
+            const store = state.stores.find(s => s.id === storeId) || setupData.stores.find(s => s.id === storeId);
+            const issueType = document.getElementById('monitor-issue-type').value;
+            const delayMin = parseInt(document.getElementById('monitor-delay-min').value) || 0;
+            const notes = document.getElementById('monitor-notes').value.trim();
+
+            if (!store) { showToast('Please select a store'); return; }
+
+            const now = new Date();
+            const alert = {
+                id: Date.now(),
+                storeId: store.id,
+                storeName: store.name,
+                type: issueType,
+                minutesLate: delayMin,
+                date: now.toLocaleDateString('en-US', { weekday: 'long' }),
+                time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                notes: notes,
+                autoGenerated: false,
+                sent: false
+            };
+            alertHistory.unshift(alert);
+
+            // Generate email preview
+            generateAlertPreview(alert);
+            renderAlertHistory();
+            renderMonitorStatus();
+        }
+
+        function generateAlertPreview(alert) {
+            const store = state.stores.find(s => s.id === alert.storeId) || setupData.stores.find(s => s.id === alert.storeId);
+            const issueLabels = {
+                delay: 'Delivery Delay',
+                missed: 'Missed Delivery',
+                breakdown: 'Truck Breakdown',
+                inventory: 'Short Inventory',
+                emergency: 'Personal Emergency'
+            };
+
+            document.getElementById('alert-store-email').textContent = `store-manager@${store.name.toLowerCase().replace(/\s/g, '')}.com`;
+            document.getElementById('alert-subject').textContent = `${issueLabels[alert.type]} — Route ${state.driver.route} — ${store.name}`;
+
+            const greetings = {
+                delay: `Hello ${store.name} Team,`,
+                missed: `Hello ${store.name} Manager,`,
+                breakdown: `Hello ${store.name} Team,`,
+                inventory: `Hello ${store.name} Team,`,
+                emergency: `Hello ${store.name} Team,`
+            };
+            document.getElementById('alert-greeting').textContent = greetings[alert.type];
+
+            const bodies = {
+                delay: `We wanted to inform you that your delivery on Route ${state.driver.route} is currently running late. Our driver ${state.driver.name} is experiencing a delay and will arrive approximately ${alert.minutesLate} minutes past the scheduled window.`,
+                missed: `We regret to inform you that your scheduled delivery for today on Route ${state.driver.route} cannot be completed as planned. Our driver ${state.driver.name} is unable to make the delivery at this time.`,
+                breakdown: `We are writing to notify you of a truck breakdown on Route ${state.driver.route}. Driver ${state.driver.name} is currently unable to proceed with deliveries due to a mechanical issue.`,
+                inventory: `We need to inform you that your delivery on Route ${state.driver.route} will be short today. Driver ${state.driver.name} does not have sufficient inventory to fulfill the complete order.`,
+                emergency: `We are reaching out to let you know that your delivery on Route ${state.driver.route} is affected due to a personal emergency. Driver ${state.driver.name} will not be able to complete the route as scheduled.`
+            };
+            document.getElementById('alert-body').textContent = bodies[alert.type];
+
+            let details = '';
+            if (alert.minutesLate > 0) details += `Estimated Delay: ${alert.minutesLate} minutes. `;
+            if (alert.notes) details += `Additional Info: ${alert.notes}. `;
+            details += `Current Time: ${alert.time}. Route: ${state.driver.route}.`;
+            document.getElementById('alert-details').textContent = details;
+
+            const closings = {
+                delay: `We sincerely apologize for the inconvenience and appreciate your patience. We will update you as soon as the driver is en route to your location.`,
+                missed: `We sincerely apologize for this missed delivery. We are working to reschedule and will confirm the new delivery time as soon as possible.`,
+                breakdown: `We are arranging for assistance and will keep you updated on the status. Thank you for your understanding.`,
+                inventory: `We will prioritize your full order on the next delivery. Thank you for your flexibility.`,
+                emergency: `We will reschedule your delivery at the earliest opportunity. Thank you for your understanding.`
+            };
+            document.getElementById('alert-closing').textContent = closings[alert.type];
+
+            const aiReasoning = alert.autoGenerated 
+                ? `FreshRoute AI detected this issue automatically via GPS tracking. The driver was ${alert.minutesLate} minutes late based on real-time location data compared to the scheduled delivery window (${store.windowStart}-${store.windowEnd}). Distance from store: ${currentDriverLocation ? haversine(currentDriverLocation.lat, currentDriverLocation.lng, store.lat, store.lng).toFixed(1) : 'N/A'} miles.`
+                : `This alert was manually triggered by the driver. FreshRoute AI has verified the issue type and drafted this message based on the selected category and notes provided.`;
+            document.getElementById('alert-ai-reasoning').textContent = aiReasoning;
+
+            document.getElementById('alert-preview-card').style.display = 'block';
+            document.getElementById('alert-preview-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function sendAlertEmail() {
+            if (alertHistory.length > 0) {
+                alertHistory[0].sent = true;
+            }
+            showToast('Alert email sent to store. (Mock send — no actual email sent)');
+            document.getElementById('alert-preview-card').style.display = 'none';
+            renderAlertHistory();
+            renderMonitorStatus();
+        }
+
+        function renderMonitorStatus() {
+            const container = document.getElementById('monitor-route-status');
+            if (!container) return;
+
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            const dayShort = today.substring(0, 3);
+            const scheduledStores = setupData.stores.filter(s => s.days.includes(dayShort));
+            const deliveredStores = [...new Set(state.deliveries.map(d => d.storeId))];
+            const onTime = deliveredStores.length;
+            const missed = scheduledStores.filter(s => !deliveredStores.includes(s.id.replace('setup-',''))).length;
+            const atRisk = alertHistory.filter(a => a.date === today && a.type === 'delay' && !a.sent).length;
+            const alertsSent = alertHistory.filter(a => a.sent).length;
+
+            document.getElementById('monitor-ontime').textContent = onTime;
+            document.getElementById('monitor-risk').textContent = atRisk;
+            document.getElementById('monitor-missed').textContent = missed;
+            document.getElementById('monitor-alerts').textContent = alertsSent;
+
+            let html = '';
+            if (scheduledStores.length === 0) {
+                html = '<div class="recommendation-card"><div class="rec-title">📅 No Deliveries Scheduled</div><div class="rec-desc">No stores are scheduled for delivery today.</div></div>';
+            } else {
+                scheduledStores.forEach(s => {
+                    const wasDelivered = deliveredStores.includes(s.id.replace('setup-',''));
+                    const hasAlert = alertHistory.some(a => a.storeId === s.id && a.date === today);
+                    const alert = alertHistory.find(a => a.storeId === s.id && a.date === today);
+
+                    const statusIcon = wasDelivered ? '✅' : hasAlert ? '⚠️' : '🕐';
+                    const statusColor = wasDelivered ? '#059669' : hasAlert ? '#f59e0b' : '#64748b';
+                    const statusText = wasDelivered ? 'Delivered' : hasAlert ? (alert?.type === 'missed' ? 'Missed' : 'Delayed') : 'Pending';
+
+                    html += `<div style="display:flex; gap:12px; align-items:center; margin-bottom:10px; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                        <div style="font-size:20px;">${statusIcon}</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:13px;">${s.name}</div>
+                            <div style="font-size:12px; color:var(--text-light);">Window: ${s.windowStart}-${s.windowEnd} • ${statusText}</div>
+                        </div>
+                        <div style="font-size:12px; font-weight:600; color:${statusColor};">${statusText}</div>
+                    </div>`;
+                });
+            }
+
+            // Live GPS status
+            if (currentDriverLocation) {
+                html += `<div class="recommendation-card" style="margin-top:12px;">
+                    <div class="rec-title">📡 Live GPS Active</div>
+                    <div class="rec-desc">
+                        Lat: ${currentDriverLocation.lat.toFixed(4)} • Lng: ${currentDriverLocation.lng.toFixed(4)}<br>
+                        Accuracy: ${Math.round(currentDriverLocation.accuracy)}m • Speed: ${currentDriverLocation.speed ? (currentDriverLocation.speed * 2.237).toFixed(1) + ' mph' : 'Stationary'}<br>
+                        Last Update: ${new Date(currentDriverLocation.timestamp).toLocaleTimeString()}
+                    </div>
+                </div>`;
+            } else {
+                html += `<div style="margin-top:12px; text-align:center;">
+                    <button class="btn btn-primary btn-sm" onclick="startLiveMonitoring()" style="width:auto;">📡 Start Live GPS Monitoring</button>
+                    <button class="btn btn-secondary btn-sm" onclick="stopLiveMonitoring()" style="width:auto;">⏹️ Stop</button>
+                </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderAlertHistory() {
+            const container = document.getElementById('alert-history');
+            if (!container) return;
+            if (alertHistory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No alerts generated yet</p></div>';
+                return;
+            }
+            let html = '';
+            alertHistory.forEach(a => {
+                const typeColors = { delay: '#f59e0b', missed: '#dc2626', breakdown: '#7c3aed', inventory: '#d97706', emergency: '#ef4444' };
+                const typeLabels = { delay: 'DELAY', missed: 'MISSED', breakdown: 'BREAKDOWN', inventory: 'SHORT', emergency: 'EMERGENCY' };
+                html += `<div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; padding:12px; background:#f8fafc; border-radius:8px; border-left:4px solid ${typeColors[a.type]};">
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-weight:700; font-size:13px;">${a.storeName}</div>
+                            <span class="badge ${a.sent ? 'badge-success' : 'badge-warning'}" style="font-size:10px;">${a.sent ? 'SENT' : 'DRAFT'}</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--text-light); margin-top:2px;">
+                            ${typeLabels[a.type]} • ${a.date} at ${a.time}
+                            ${a.minutesLate > 0 ? `• ${a.minutesLate} min late` : ''}
+                            ${a.autoGenerated ? '• Auto-detected by AI' : '• Manually triggered'}
+                        </div>
+                        ${a.notes ? `<div style="font-size:11px; color:#64748b; margin-top:4px; font-style:italic;">"${a.notes}"</div>` : ''}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function saveAlertSettings() {
+            alertSettings.lateThreshold = parseInt(document.getElementById('alert-late-threshold').value) || 15;
+            alertSettings.missedThreshold = parseInt(document.getElementById('alert-missed-threshold').value) || 2;
+            alertSettings.recipients.store = document.getElementById('alert-to-store').checked;
+            alertSettings.recipients.freezer = document.getElementById('alert-to-freezer').checked;
+            alertSettings.recipients.dispatcher = document.getElementById('alert-to-dispatcher').checked;
+            showToast('Alert settings saved');
+        }
+
+
+        // ─── AI VISION SCANNER LOGIC ───
+        let currentScanMode = 'product';
+        let scanResults = [];
+        let scanHistory = [];
+        let barcodeDetector = null;
+
+        async function initBarcodeDetector() {
+            if ('BarcodeDetector' in window) {
+                try {
+                    barcodeDetector = new BarcodeDetector({ formats: ['code_39', 'code_128', 'ean_13', 'ean_8', 'upc_a', 'qr_code'] });
+                    console.log('BarcodeDetector initialized');
+                } catch (e) {
+                    console.log('BarcodeDetector init failed:', e);
+                }
+            } else {
+                console.log('BarcodeDetector not supported — using fallback OCR');
+            }
+        }
+
+        function setScanMode(mode) {
+            currentScanMode = mode;
+            document.querySelectorAll('[id^="scan-mode-"]').forEach(btn => {
+                btn.className = 'btn btn-secondary btn-sm';
+                btn.style.width = 'auto';
+            });
+            const activeBtn = document.getElementById('scan-mode-' + mode);
+            activeBtn.className = 'btn btn-primary btn-sm';
+            activeBtn.style.width = 'auto';
+            activeBtn.style.background = 'linear-gradient(135deg, #d97706, #b45309)';
+
+            const indicators = {
+                product: '📦 Product List Mode: Scan a paper list, receipt, or product sheet. AI will extract product names, quantities, and prices.',
+                pickup: '❄️ Freezer Pickup Mode: Scan a freezer bill of lading or pickup sheet. AI will create pickup entries with quantities and costs.',
+                inventory: '🚚 Truck Inventory Mode: Point camera at truck shelves. AI will count items and update inventory.',
+                barcode: '🏷️ Barcode Mode: Scan product barcodes one by one. AI will look up product info and add to list.'
+            };
+            document.getElementById('scan-mode-indicator').textContent = indicators[mode];
+        }
+
+        function processScanImage() {
+            const input = document.getElementById('scan-file');
+            const file = input.files[0];
+            if (!file) return;
+            if (!file.type.match('image.*')) { showToast('Please select an image file'); return; }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('scan-preview-img').src = e.target.result;
+                document.getElementById('scan-preview-wrap').style.display = 'block';
+                document.getElementById('scan-file-info').textContent = `${file.name} • ${(file.size/1024).toFixed(1)} KB • ${file.type}`;
+                document.getElementById('scan-analyze-btn').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeScanImage() {
+            document.getElementById('scan-processing').style.display = 'block';
+            document.getElementById('scan-analyze-btn').style.display = 'none';
+
+            // Simulate AI processing progress
+            const progressBar = document.getElementById('scan-progress-bar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress > 95) progress = 95;
+                progressBar.style.width = progress + '%';
+            }, 200);
+
+            // Try barcode detection first if in barcode mode
+            let detectedBarcodes = [];
+            if (currentScanMode === 'barcode' && barcodeDetector) {
+                try {
+                    const img = document.getElementById('scan-preview-img');
+                    detectedBarcodes = await barcodeDetector.detect(img);
+                } catch (e) {
+                    console.log('Barcode detection failed:', e);
+                }
+            }
+
+            // Simulate AI analysis completion
+            setTimeout(() => {
+                clearInterval(interval);
+                progressBar.style.width = '100%';
+                setTimeout(() => {
+                    document.getElementById('scan-processing').style.display = 'none';
+                    generateScanResults(detectedBarcodes);
+                }, 300);
+            }, 1500);
+        }
+
+        function generateScanResults(barcodes) {
+            scanResults = [];
+            const now = new Date();
+            const d21 = new Date(now); d21.setDate(d21.getDate() + 14);
+            const d28 = new Date(now); d28.setDate(d28.getDate() + 21);
+
+            if (currentScanMode === 'barcode' && barcodes.length > 0) {
+                // Real barcode results
+                barcodes.forEach((bc, idx) => {
+                    const product = barcodeToProduct(bc.rawValue) || state.products[idx % state.products.length];
+                    scanResults.push({
+                        id: Date.now() + idx,
+                        product: product,
+                        qty: 12,
+                        cost: 1.25 + (idx * 0.15),
+                        shelfLife: idx % 2 === 0 ? 21 : 28,
+                        barcode: bc.rawValue,
+                        format: bc.format,
+                        expiry: idx % 2 === 0 ? d21.toISOString().split('T')[0] : d28.toISOString().split('T')[0],
+                        confidence: 98
+                    });
+                });
+            } else {
+                // Simulated AI OCR results based on mode
+                const mockData = {
+                    product: [
+                        { product: 'Croissant', qty: 24, cost: 1.25, shelfLife: 21, expiry: d21.toISOString().split('T')[0], confidence: 94 },
+                        { product: 'Cheese Danish', qty: 18, cost: 1.40, shelfLife: 21, expiry: d21.toISOString().split('T')[0], confidence: 91 },
+                        { product: 'Muffin', qty: 30, cost: 1.10, shelfLife: 28, expiry: d28.toISOString().split('T')[0], confidence: 96 },
+                    ],
+                    pickup: [
+                        { product: 'Cinnamon Roll', qty: 15, cost: 1.55, shelfLife: 21, expiry: d21.toISOString().split('T')[0], confidence: 89 },
+                        { product: 'Apple Turnover', qty: 12, cost: 1.35, shelfLife: 28, expiry: d28.toISOString().split('T')[0], confidence: 92 },
+                    ],
+                    inventory: [
+                        { product: 'Croissant', qty: 8, cost: 1.25, shelfLife: 21, expiry: d21.toISOString().split('T')[0], confidence: 87 },
+                        { product: 'Muffin', qty: 14, cost: 1.10, shelfLife: 28, expiry: d28.toISOString().split('T')[0], confidence: 90 },
+                    ],
+                    barcode: [
+                        { product: 'Croissant', qty: 12, cost: 1.25, shelfLife: 21, expiry: d21.toISOString().split('T')[0], barcode: '123456789012', confidence: 99 },
+                    ]
+                };
+                scanResults = mockData[currentScanMode] || mockData.product;
+            }
+
+            renderScanResults();
+            document.getElementById('scan-results-card').style.display = 'block';
+            document.getElementById('scan-results-card').scrollIntoView({ behavior: 'smooth' });
+
+            // Update confidence display
+            const avgConfidence = Math.round(scanResults.reduce((s, r) => s + r.confidence, 0) / scanResults.length);
+            const barcodeCount = scanResults.filter(r => r.barcode).length;
+            document.getElementById('scan-confidence-score').innerHTML = `✅ AI Confidence: ${avgConfidence}% — ${scanResults.length} products detected${barcodeCount > 0 ? `, ${barcodeCount} barcodes matched` : ''}, ${scanResults.filter(r => r.shelfLife).length} expiry dates found`;
+        }
+
+        function barcodeToProduct(rawValue) {
+            // Mock barcode lookup — in production this would hit a product database
+            const map = {
+                '123456789012': 'Croissant',
+                '123456789013': 'Cheese Danish',
+                '123456789014': 'Muffin',
+                '123456789015': 'Cinnamon Roll',
+                '123456789016': 'Apple Turnover',
+            };
+            return map[rawValue] || null;
+        }
+
+        function renderScanResults() {
+            let html = '<div class="table-wrap"><table><thead><tr><th>Product</th><th class="text-right">Qty</th><th class="text-right">Unit $</th><th class="text-right">Total</th><th>Expiry</th><th>Conf.</th></tr></thead><tbody>';
+            scanResults.forEach((r, idx) => {
+                const total = r.qty * r.cost;
+                html += `<tr>
+                    <td><strong>${r.product}</strong>${r.barcode ? `<br><span style="font-size:10px; color:#64748b;">🏷️ ${r.barcode}${r.format ? ' (' + r.format + ')' : ''}</span>` : ''}</td>
+                    <td class="text-right"><input type="number" class="form-input" id="scan-qty-${idx}" value="${r.qty}" min="1" style="width:60px; padding:4px; font-size:12px;"></td>
+                    <td class="text-right">$${r.cost.toFixed(2)}</td>
+                    <td class="text-right">$${total.toFixed(2)}</td>
+                    <td>${formatDate(r.expiry)} <span class="tag tag-exp-${r.shelfLife}">${r.shelfLife}d</span></td>
+                    <td><span class="badge ${r.confidence >= 90 ? 'badge-success' : r.confidence >= 70 ? 'badge-warning' : 'badge-danger'}">${r.confidence}%</span></td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+            document.getElementById('scan-results-output').innerHTML = html;
+            renderManualScanEntries();
+        }
+
+        function addManualScanEntry() {
+            const container = document.getElementById('scan-manual-entries');
+            const id = Date.now();
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex; gap:8px; margin-bottom:8px; align-items:center;';
+            div.innerHTML = `
+                <select class="form-select" id="manual-prod-${id}" style="flex:1; font-size:12px;">
+                    ${state.products.map(p => `<option value="${p}">${p}</option>`).join('')}
+                </select>
+                <input type="number" class="form-input" id="manual-qty-${id}" value="6" min="1" style="width:60px; padding:4px; font-size:12px;">
+                <input type="number" class="form-input" id="manual-cost-${id}" value="1.25" step="0.01" style="width:70px; padding:4px; font-size:12px;">
+                <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="width:auto; padding:4px 8px;">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function renderManualScanEntries() {
+            document.getElementById('scan-manual-entries').innerHTML = '';
+        }
+
+        function confirmScanResults() {
+            // Update quantities from editable fields
+            scanResults.forEach((r, idx) => {
+                const qtyInput = document.getElementById(`scan-qty-${idx}`);
+                if (qtyInput) r.qty = parseInt(qtyInput.value) || r.qty;
+            });
+
+            // Add manual entries
+            const manualEntries = [];
+            document.querySelectorAll('[id^="manual-prod-"]').forEach(el => {
+                const id = el.id.split('-').pop();
+                const prod = el.value;
+                const qty = parseInt(document.getElementById(`manual-qty-${id}`)?.value) || 0;
+                const cost = parseFloat(document.getElementById(`manual-cost-${id}`)?.value) || 0;
+                if (qty > 0 && cost > 0) manualEntries.push({ product: prod, qty, cost });
+            });
+
+            // Process based on mode
+            let addedCount = 0;
+            if (currentScanMode === 'product' || currentScanMode === 'pickup') {
+                scanResults.forEach(r => {
+                    const id = state.pickups.length > 0 ? Math.max(...state.pickups.map(p => p.id)) + 1 + addedCount : 1 + addedCount;
+                    const pickup = { id, product: r.product, qty: r.qty, cost: r.cost, shelfLife: r.shelfLife, date: new Date().toISOString().split('T')[0], expiry: r.expiry };
+                    state.pickups.push(pickup);
+                    state.inventory.push({ ...pickup, remaining: r.qty });
+                    addedCount++;
+                });
+                manualEntries.forEach(e => {
+                    const id = state.pickups.length > 0 ? Math.max(...state.pickups.map(p => p.id)) + 1 : 1;
+                    const d21 = new Date(); d21.setDate(d21.getDate() + 14);
+                    state.pickups.push({ id, product: e.product, qty: e.qty, cost: e.cost, shelfLife: 21, date: new Date().toISOString().split('T')[0], expiry: d21.toISOString().split('T')[0] });
+                    state.inventory.push({ ...state.pickups[state.pickups.length-1], remaining: e.qty });
+                });
+                showToast(`${addedCount + manualEntries.length} items added to pickup/inventory`);
+            } else if (currentScanMode === 'inventory') {
+                scanResults.forEach(r => {
+                    const existing = state.inventory.find(i => i.product === r.product);
+                    if (existing) {
+                        existing.remaining = r.qty;
+                    } else {
+                        state.inventory.push({ id: Date.now() + addedCount, product: r.product, qty: r.qty, cost: r.cost, shelfLife: r.shelfLife, date: new Date().toISOString().split('T')[0], expiry: r.expiry, remaining: r.qty });
+                    }
+                    addedCount++;
+                });
+                showToast(`${addedCount} inventory items updated`);
+            } else if (currentScanMode === 'barcode') {
+                scanResults.forEach(r => {
+                    const id = state.pickups.length > 0 ? Math.max(...state.pickups.map(p => p.id)) + 1 + addedCount : 1 + addedCount;
+                    state.pickups.push({ id, product: r.product, qty: r.qty, cost: r.cost, shelfLife: r.shelfLife, date: new Date().toISOString().split('T')[0], expiry: r.expiry });
+                    state.inventory.push({ ...state.pickups[state.pickups.length-1], remaining: r.qty });
+                    addedCount++;
+                });
+                showToast(`${addedCount} barcode items added to system`);
+            }
+
+            // Save to history
+            scanHistory.unshift({
+                id: Date.now(), mode: currentScanMode, items: scanResults.length + manualEntries.length,
+                date: new Date().toLocaleString(), image: document.getElementById('scan-preview-img').src
+            });
+
+            // Reset
+            document.getElementById('scan-results-card').style.display = 'none';
+            document.getElementById('scan-preview-wrap').style.display = 'none';
+            document.getElementById('scan-file').value = '';
+            scanResults = [];
+            renderAll();
+            renderScanHistory();
+        }
+
+        function rejectScanResults() {
+            document.getElementById('scan-results-card').style.display = 'none';
+            document.getElementById('scan-preview-wrap').style.display = 'none';
+            document.getElementById('scan-file').value = '';
+            scanResults = [];
+            showToast('Scan rejected. You can rescan or enter manually.');
+        }
+
+        function renderScanHistory() {
+            const container = document.getElementById('scan-history');
+            if (scanHistory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📷</div><p>No scans yet</p></div>';
+                return;
+            }
+            let html = '';
+            scanHistory.forEach(h => {
+                const modeLabels = { product: 'Product List', pickup: 'Freezer Pickup', inventory: 'Truck Inventory', barcode: 'Barcode' };
+                html += `<div style="display:flex; gap:12px; align-items:center; margin-bottom:10px; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                    ${h.image && h.image.length > 100 ? `<img src="${h.image}" style="width:60px; height:60px; object-fit:cover; border-radius:6px; flex-shrink:0;">` : '<div style="width:60px; height:60px; background:#e2e8f0; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">📷</div>'}
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:13px;">${modeLabels[h.mode] || h.mode}</div>
+                        <div style="font-size:12px; color:var(--text-light);">${h.items} items • ${h.date}</div>
+                    </div>
+                    <span class="badge badge-success">Done</span>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // Initialize barcode detector on load
+        initBarcodeDetector();
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
