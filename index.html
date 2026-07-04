@@ -177,6 +177,7 @@
             <div class="ai-badge">AI-Powered</div>
         </div>
         <nav class="nav-tabs">
+            <button class="nav-tab" data-section="command" onclick="showSection('command')">🎛️ Command</button>
             <button class="nav-tab active" data-section="dashboard" onclick="showSection('dashboard')">Dashboard</button>
             <button class="nav-tab" data-section="pickup" onclick="showSection('pickup')">Freezer Pickup</button>
             <button class="nav-tab" data-section="inventory" onclick="showSection('inventory')">Truck Inventory</button>
@@ -188,6 +189,7 @@
             <button class="nav-tab" data-section="plano" onclick="showSection('plano')">Plan-o-Gram</button>
             <button class="nav-tab" data-section="setup" onclick="showSection('setup')">Route Setup</button>
             <button class="nav-tab" data-section="monitor" onclick="showSection('monitor')">Live Monitor</button>
+            <button class="nav-tab" data-section="messaging" onclick="showSection('messaging')">💬 Messages</button>
             <button class="nav-tab" data-section="scanner" onclick="showSection('scanner')">AI Scanner</button>
             <button class="nav-tab" data-section="order" onclick="showSection('order')">Next Week Order</button>
         </nav>
@@ -1155,6 +1157,255 @@
             </div>
         </div>
 
+
+        <!-- COMMAND BOARD -->
+        <div id="command" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">🎛️</span> Command Board — Operations Control Center</div>
+                <div class="ai-insight">
+                    <div class="ai-label">🧠 HQ Intelligence</div>
+                    <p>Real-time visibility across all drivers, zones, warehouses, and delivery performance. Market managers monitor inventory levels, missed deliveries, and route efficiency from a single screen.</p>
+                </div>
+                <div class="stat-grid" style="margin-bottom:16px;">
+                    <div class="stat-card blue">
+                        <div class="stat-label">Active Drivers</div>
+                        <div class="stat-value" id="cmd-active-drivers">0</div>
+                        <div class="stat-sub">on route today</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Deliveries Complete</div>
+                        <div class="stat-value" id="cmd-deliveries-done">0</div>
+                        <div class="stat-sub">today</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Missed / Late</div>
+                        <div class="stat-value" id="cmd-missed-late">0</div>
+                        <div class="stat-sub">require attention</div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-label">Warehouse Alerts</div>
+                        <div class="stat-value" id="cmd-warehouse-alerts">0</div>
+                        <div class="stat-sub">low stock / critical</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="cmd-revenue">$0.00</div>
+                        <div class="stat-sub">today</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Route Efficiency</div>
+                        <div class="stat-value" id="cmd-efficiency">0%</div>
+                        <div class="stat-sub">avg across fleet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">🗺️</span> Zone / ZIP Code Monitor</div>
+                <div class="form-group">
+                    <label class="form-label">Filter by Zone</label>
+                    <select class="form-select" id="cmd-zone-filter" onchange="renderCommandBoard()">
+                        <option value="all">All Zones</option>
+                        <option value="20852">20852 — Rockville</option>
+                        <option value="20878">20878 — Gaithersburg</option>
+                        <option value="20874">20874 — Germantown</option>
+                        <option value="20904">20904 — Silver Spring</option>
+                        <option value="20850">20850 — Rockville North</option>
+                    </select>
+                </div>
+                <div id="cmd-zone-view"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">👷</span> Driver Fleet Monitor</div>
+                <div id="cmd-driver-list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">❄️</span> Warehouse / Freezer Inventory Levels</div>
+                <div class="form-group">
+                    <label class="form-label">Select Warehouse</label>
+                    <select class="form-select" id="cmd-warehouse-select" onchange="renderWarehouseInventory()">
+                        <option value="wh1">North Montgomery Freezer — Rockville</option>
+                        <option value="wh2">East County Warehouse — Silver Spring</option>
+                        <option value="wh3">West Branch Freezer — Gaithersburg</option>
+                    </select>
+                </div>
+                <div id="cmd-warehouse-view"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">⚠️</span> Missed Delivery Tracker</div>
+                <div id="cmd-missed-tracker"></div>
+            </div>
+
+            
+            <div class="card" id="dispatcher-mode-card">
+                <div class="card-title"><span class="icon">🎧</span> Dispatcher Control Mode</div>
+                <div class="ai-insight">
+                    <div class="ai-label">📡 Dispatch Center</div>
+                    <p>Dispatcher view shows real-time driver locations, active routes, and immediate intervention tools. Reroute drivers, send alerts, or dispatch emergency support — all from one screen.</p>
+                </div>
+
+                <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:200px;">
+                        <div class="form-group">
+                            <label class="form-label">Dispatch Shift</label>
+                            <select class="form-select" id="dispatch-shift">
+                                <option value="morning">Morning Shift (4 AM - 12 PM)</option>
+                                <option value="afternoon">Afternoon Shift (12 PM - 8 PM)</option>
+                                <option value="night">Night Shift (8 PM - 4 AM)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="flex:1; min-width:200px;">
+                        <div class="form-group">
+                            <label class="form-label">Dispatcher Name</label>
+                            <input type="text" class="form-input" id="dispatch-name" value="Alex Rivera" placeholder="Your name">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+                <div style="font-weight:700; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light);">Live Driver Status Map</div>
+                <div id="dispatch-driver-map"></div>
+
+                <div class="divider"></div>
+                <div style="font-weight:700; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light);">Dispatch Actions</div>
+                <div class="row-2">
+                    <button class="btn btn-primary btn-sm" onclick="dispatchAction('reroute')" style="width:auto;">🔄 Reroute Driver</button>
+                    <button class="btn btn-danger btn-sm" onclick="dispatchAction('emergency')" style="width:auto;">🚨 Emergency Support</button>
+                    <button class="btn btn-warning btn-sm" onclick="dispatchAction('hold')" style="width:auto;">⏸️ Hold Route</button>
+                    <button class="btn btn-success btn-sm" onclick="dispatchAction('release')" style="width:auto;">▶️ Release Route</button>
+                    <button class="btn btn-secondary btn-sm" onclick="dispatchAction('substitute')" style="width:auto;">👥 Send Substitute</button>
+                    <button class="btn btn-secondary btn-sm" onclick="dispatchAction('checkin')" style="width:auto;">📍 Force Check-In</button>
+                </div>
+
+                <div id="dispatch-action-panel" style="display:none; margin-top:16px;">
+                    <div class="divider"></div>
+                    <div class="form-group">
+                        <label class="form-label">Select Driver</label>
+                        <select class="form-select" id="dispatch-target-driver"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dispatch Instruction</label>
+                        <textarea class="form-input" id="dispatch-instruction" rows="3" placeholder="Enter detailed instruction for the driver..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="dispatch-priority">
+                            <option value="normal">Normal</option>
+                            <option value="high">High Priority</option>
+                            <option value="critical">Critical / Emergency</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="sendDispatchInstruction()">📤 Send Dispatch Instruction</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📻</span> Dispatcher Radio Log</div>
+                <div id="dispatch-log"></div>
+            </div>
+
+<div class="card">
+                <div class="card-title"><span class="icon">📊</span> Market Manager Reports</div>
+                <div class="row-2" style="margin-bottom:16px;">
+                    <button class="btn btn-primary" onclick="generateReport('daily')">📅 Daily Summary</button>
+                    <button class="btn btn-secondary" onclick="generateReport('weekly')">📆 Weekly Report</button>
+                </div>
+                <div id="cmd-report-output"></div>
+            </div>
+        </div>
+
+
+        <!-- DIRECT MESSAGING -->
+        <div id="messaging" class="section">
+            <div class="card">
+                <div class="card-title"><span class="icon">💬</span> Team Messaging</div>
+                <div class="ai-insight">
+                    <div class="ai-label">📡 HQ Communications</div>
+                    <p>Market managers and dispatchers can send direct messages to any driver. Drivers receive alerts for urgent instructions, schedule changes, or route updates — all in one thread.</p>
+                </div>
+
+                <div style="display:flex; gap:12px; margin-bottom:16px;">
+                    <div style="flex:1;">
+                        <div class="form-group">
+                            <label class="form-label">Your Role</label>
+                            <select class="form-select" id="dm-role" onchange="switchDMRole()">
+                                <option value="manager" selected>Market Manager / Dispatcher</option>
+                                <option value="driver">Driver</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="form-group">
+                            <label class="form-label">Select Driver</label>
+                            <select class="form-select" id="dm-driver-select"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dm-chat-container" style="background:#f8fafc; border:1px solid var(--border); border-radius:10px; height:350px; overflow-y:auto; padding:16px; margin-bottom:16px;">
+                    <div id="dm-messages"></div>
+                </div>
+
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <div style="flex:1;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <input type="text" class="form-input" id="dm-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendDM()">
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="sendDM()" style="width:auto; padding:10px 16px;">📤 Send</button>
+                        <button class="btn btn-danger btn-sm" onclick="sendUrgentDM()" style="width:auto; padding:10px 16px;">🚨 Urgent</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="insertQuickMsg('Route update: new store added to your schedule.')" style="width:auto;">📍 Route Update</button>
+                    <button class="btn btn-secondary btn-sm" onclick="insertQuickMsg('Please return to warehouse for additional pickup.')" style="width:auto;">❄️ Extra Pickup</button>
+                    <button class="btn btn-secondary btn-sm" onclick="insertQuickMsg('Store called — delay your visit by 30 minutes.')" style="width:auto;">⏰ Delay Notice</button>
+                    <button class="btn btn-secondary btn-sm" onclick="insertQuickMsg('Great job today! Keep up the efficiency.')" style="width:auto;">👍 Kudos</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📋</span> Message Templates</div>
+                <div class="row-2">
+                    <div class="recommendation-card" style="cursor:pointer;" onclick="insertQuickMsg('🚨 URGENT: Return to base immediately. Contact dispatcher.')">
+                        <div class="rec-title">🚨 Emergency Recall</div>
+                        <div class="rec-desc">Immediate return to warehouse</div>
+                    </div>
+                    <div class="recommendation-card" style="cursor:pointer;" onclick="insertQuickMsg('📦 Inventory Alert: Your truck stock is running low. Consider a freezer stop.')">
+                        <div class="rec-title">📦 Low Inventory</div>
+                        <div class="rec-desc">Warn driver about stock levels</div>
+                    </div>
+                    <div class="recommendation-card" style="cursor:pointer;" onclick="insertQuickMsg('🏪 Store Issue: The manager at your next stop is not available. Skip and reschedule.')">
+                        <div class="rec-title">🏪 Store Unavailable</div>
+                        <div class="rec-desc">Skip and reschedule delivery</div>
+                    </div>
+                    <div class="recommendation-card" style="cursor:pointer;" onclick="insertQuickMsg('⛽ Fuel Reimbursement: Your gas expense report has been approved. Check settlement.')">
+                        <div class="rec-title">⛽ Expense Approved</div>
+                        <div class="rec-desc">Fuel reimbursement confirmed</div>
+                    </div>
+                    <div class="recommendation-card" style="cursor:pointer;" onclick="insertQuickMsg('🌤️ Weather Alert: Thunderstorms expected on your route. Drive safely and update ETAs.')">
+                        <div class="rec-title">🌤️ Weather Warning</div>
+                        <div class="rec-desc">Storm alert for route area</div>
+                    </div>
+                    <div class="recommendation-card" style="cursor:pointer;" onclick="insertQuickMsg('✅ Route Complete: All deliveries confirmed. You are cleared to return home. Great work!')">
+                        <div class="rec-title">✅ Route Complete</div>
+                        <div class="rec-desc">All deliveries confirmed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span class="icon">📜</span> Message History</div>
+                <div id="dm-history"></div>
+            </div>
+        </div>
+
     <div class="toast" id="toast"></div>
     <script>
         const state = {
@@ -1174,6 +1425,8 @@
             loadSetupSampleStores();
             initPlanoStoreSelect();
             initMonitorStoreSelect();
+            initDM();
+            initDispatcher();
             document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
             document.getElementById('pickup-date').value = new Date().toISOString().split('T')[0];
             loadSampleData();
@@ -1234,6 +1487,11 @@
             renderMonitorStatus();
             renderAlertHistory();
             renderScanHistory();
+            renderCommandBoard();
+            renderDMChat();
+            renderDMHistory();
+            renderDispatchDriverMap();
+            renderDispatchLog();
         }
 
         function fmt$(n) { return '$' + (n < 0 ? '(' : '') + Math.abs(n).toFixed(2) + (n < 0 ? ')' : ''); }
@@ -2796,6 +3054,587 @@
 
         // Initialize barcode detector on load
         initBarcodeDetector();
+
+
+        // ─── COMMAND BOARD (ADMIN / HQ) LOGIC ───
+        const fleetData = {
+            drivers: [
+                { id: 'd1', name: 'John Davidson', route: 'North Montgomery', zone: '20852', zip: '20852', status: 'on-route', lat: 39.0839, lng: -77.1200, deliveries: 5, missed: 0, late: 0, revenue: 145.50, truckInv: 42, efficiency: 87 },
+                { id: 'd2', name: 'Maria Santos', route: 'East County', zone: '20904', zip: '20904', status: 'on-route', lat: 39.0192, lng: -76.9824, deliveries: 3, missed: 1, late: 0, revenue: 98.25, truckInv: 28, efficiency: 72 },
+                { id: 'd3', name: 'Kevin Brooks', route: 'West Branch', zone: '20878', zip: '20878', status: 'break', lat: 39.1412, lng: -77.2210, deliveries: 4, missed: 0, late: 1, revenue: 112.00, truckInv: 35, efficiency: 91 },
+                { id: 'd4', name: 'Lisa Chen', route: 'North Montgomery', zone: '20850', zip: '20850', status: 'on-route', lat: 39.1056, lng: -77.1500, deliveries: 6, missed: 0, late: 0, revenue: 178.75, truckInv: 18, efficiency: 94 },
+                { id: 'd5', name: 'David Okafor', route: 'East County', zone: '20904', zip: '20904', status: 'off-duty', lat: 39.0192, lng: -76.9824, deliveries: 0, missed: 0, late: 0, revenue: 0, truckInv: 0, efficiency: 0 }
+            ],
+            warehouses: {
+                wh1: { name: 'North Montgomery Freezer', address: '4500 Randolph Rd, Rockville, MD 20852', manager: 'Mike Torres', phone: '(301) 555-0142',
+                    inventory: { 'Croissant': 240, 'Cheese Danish': 180, 'Muffin': 300, 'Cinnamon Roll': 150, 'Apple Turnover': 120 },
+                    alerts: ['Croissant stock below 7-day threshold (240 units)', 'Muffin demand trending up — consider increasing pickup'] },
+                wh2: { name: 'East County Warehouse', address: '8900 Georgia Ave, Silver Spring, MD 20904', manager: 'Sarah Jenkins', phone: '(301) 555-0199',
+                    inventory: { 'Croissant': 120, 'Cheese Danish': 90, 'Muffin': 200, 'Cinnamon Roll': 80, 'Apple Turnover': 60 },
+                    alerts: ['Croissant critically low — only 120 units', 'Apple Turnover slow mover — 60 units, 14 days old'] },
+                wh3: { name: 'West Branch Freezer', address: '1200 Quince Orchard Rd, Gaithersburg, MD 20878', manager: 'Raj Patel', phone: '(301) 555-0177',
+                    inventory: { 'Croissant': 360, 'Cheese Danish': 240, 'Muffin': 400, 'Cinnamon Roll': 200, 'Apple Turnover': 180 },
+                    alerts: ['All products well-stocked — no action needed'] }
+            },
+            missedDeliveries: [
+                { id: 1, driver: 'Maria Santos', driverId: 'd2', store: 'Shell Silver Spring', address: '4500 Colesville Rd, Silver Spring, MD 20904', zone: '20904', reason: 'Traffic accident on I-495', time: '08:45 AM', status: 'pending-reschedule', alerted: true },
+                { id: 2, driver: 'Kevin Brooks', driverId: 'd3', store: 'Exxon Germantown', address: '19700 Germantown Rd, Germantown, MD 20874', zone: '20874', reason: 'Running 45 min late — truck inventory short', time: '10:15 AM', status: 'in-progress', alerted: true },
+                { id: 3, driver: 'Maria Santos', driverId: 'd2', store: '7-Eleven Forest Glen', address: '2800 Forest Glen Ave, Silver Spring, MD 20904', zone: '20904', reason: 'Personal emergency — route incomplete', time: '11:30 AM', status: 'missed', alerted: false }
+            ]
+        };
+
+        function renderCommandBoard() {
+            const zoneFilter = document.getElementById('cmd-zone-filter')?.value || 'all';
+            const filteredDrivers = zoneFilter === 'all' ? fleetData.drivers : fleetData.drivers.filter(d => d.zone === zoneFilter);
+            const activeDrivers = filteredDrivers.filter(d => d.status === 'on-route').length;
+            const deliveriesDone = filteredDrivers.reduce((s, d) => s + d.deliveries, 0);
+            const missedLate = filteredDrivers.reduce((s, d) => s + d.missed + d.late, 0);
+            const revenue = filteredDrivers.reduce((s, d) => s + d.revenue, 0);
+            const avgEfficiency = filteredDrivers.filter(d => d.efficiency > 0).reduce((s, d) => s + d.efficiency, 0) / filteredDrivers.filter(d => d.efficiency > 0).length || 0;
+            const wh = fleetData.warehouses[document.getElementById('cmd-warehouse-select')?.value || 'wh1'];
+            const whAlerts = wh ? wh.alerts.length : 0;
+
+            document.getElementById('cmd-active-drivers').textContent = activeDrivers;
+            document.getElementById('cmd-deliveries-done').textContent = deliveriesDone;
+            document.getElementById('cmd-missed-late').textContent = missedLate;
+            document.getElementById('cmd-warehouse-alerts').textContent = whAlerts;
+            document.getElementById('cmd-revenue').textContent = fmt$(revenue);
+            document.getElementById('cmd-efficiency').textContent = Math.round(avgEfficiency) + '%';
+
+            renderZoneView(filteredDrivers);
+            renderDriverList(filteredDrivers);
+            renderWarehouseInventory();
+            renderMissedTracker();
+        }
+
+        function renderZoneView(drivers) {
+            const container = document.getElementById('cmd-zone-view');
+            if (!container) return;
+            const zones = {};
+            drivers.forEach(d => {
+                if (!zones[d.zone]) zones[d.zone] = { drivers: [], deliveries: 0, revenue: 0, missed: 0 };
+                zones[d.zone].drivers.push(d);
+                zones[d.zone].deliveries += d.deliveries;
+                zones[d.zone].revenue += d.revenue;
+                zones[d.zone].missed += d.missed;
+            });
+
+            let html = '<div class="stat-grid">';
+            for (const [zone, data] of Object.entries(zones)) {
+                const statusColor = data.missed > 0 ? 'red' : data.deliveries > 0 ? 'green' : 'blue';
+                html += `<div class="stat-card ${statusColor}">
+                    <div class="stat-label">Zone ${zone}</div>
+                    <div class="stat-value small">${data.drivers.length} drivers</div>
+                    <div class="stat-sub">${data.deliveries} deliveries • ${fmt$(data.revenue)}${data.missed > 0 ? ` • <span style="color:#dc2626;">${data.missed} missed</span>` : ''}</div>
+                </div>`;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderDriverList(drivers) {
+            const container = document.getElementById('cmd-driver-list');
+            if (!container) return;
+            if (drivers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">👷</div><p>No drivers in this zone</p></div>';
+                return;
+            }
+            let html = '<div class="table-wrap"><table><thead><tr><th>Driver</th><th>Route</th><th>Zone</th><th>Status</th><th class="text-right">Delivered</th><th class="text-right">Truck Inv</th><th class="text-right">Revenue</th><th>Efficiency</th></tr></thead><tbody>';
+            drivers.forEach(d => {
+                const statusBadge = d.status === 'on-route' ? '<span class="badge badge-success">On Route</span>' : d.status === 'break' ? '<span class="badge badge-warning">Break</span>' : '<span class="badge badge-info">Off Duty</span>';
+                const effBar = d.efficiency > 0 ? `<div class="progress-bar" style="width:80px;"><div class="progress-fill ${d.efficiency >= 80 ? 'green' : d.efficiency >= 60 ? 'yellow' : 'red'}" style="width:${d.efficiency}%"></div></div>` : '—';
+                html += `<tr>
+                    <td><strong>${d.name}</strong></td>
+                    <td>${d.route}</td>
+                    <td>${d.zip}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-right">${d.deliveries}</td>
+                    <td class="text-right">${d.truckInv}</td>
+                    <td class="text-right">${fmt$(d.revenue)}</td>
+                    <td>${effBar}</td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function renderWarehouseInventory() {
+            const whId = document.getElementById('cmd-warehouse-select')?.value || 'wh1';
+            const wh = fleetData.warehouses[whId];
+            const container = document.getElementById('cmd-warehouse-view');
+            if (!container || !wh) return;
+
+            let html = `<div style="margin-bottom:12px;"><strong>${wh.name}</strong><br><span style="font-size:12px; color:var(--text-light);">${wh.address} • Manager: ${wh.manager} • 📞 ${wh.phone}</span></div>`;
+
+            // Alerts
+            if (wh.alerts.length > 0) {
+                html += '<div style="margin-bottom:12px;">';
+                wh.alerts.forEach(a => {
+                    const isCritical = a.includes('critically') || a.includes('below');
+                    html += `<div class="recommendation-card ${isCritical ? 'danger' : 'warning'}" style="margin-bottom:6px;"><div class="rec-desc">${isCritical ? '🚨' : '⚠️'} ${a}</div></div>`;
+                });
+                html += '</div>';
+            }
+
+            // Inventory table
+            html += '<div class="table-wrap"><table><thead><tr><th>Product</th><th class="text-right">Stock</th><th class="text-right">7-Day Need</th><th class="text-right">Status</th><th>Action</th></tr></thead><tbody>';
+            for (const [prod, qty] of Object.entries(wh.inventory)) {
+                const need = Math.round(qty * 0.3); // Mock 7-day need
+                const status = qty < 150 ? '<span class="badge badge-danger">Critical</span>' : qty < 250 ? '<span class="badge badge-warning">Low</span>' : '<span class="badge badge-success">Good</span>';
+                const action = qty < 150 ? 'Reorder now' : qty < 250 ? 'Monitor' : 'No action';
+                html += `<tr><td><strong>${prod}</strong></td><td class="text-right">${qty}</td><td class="text-right">~${need}</td><td class="text-right">${status}</td><td style="font-size:11px; color:#64748b;">${action}</td></tr>`;
+            }
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function renderMissedTracker() {
+            const container = document.getElementById('cmd-missed-tracker');
+            if (!container) return;
+            if (fleetData.missedDeliveries.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No missed deliveries today</p></div>';
+                return;
+            }
+            let html = '';
+            fleetData.missedDeliveries.forEach(m => {
+                const statusBadge = m.status === 'missed' ? '<span class="badge badge-danger">Missed</span>' : m.status === 'pending-reschedule' ? '<span class="badge badge-warning">Reschedule</span>' : '<span class="badge badge-info">In Progress</span>';
+                const alertBadge = m.alerted ? '<span class="badge badge-success">Alert Sent</span>' : '<span class="badge badge-danger">No Alert</span>';
+                html += `<div class="store-card" style="border-left:4px solid ${m.status === 'missed' ? '#dc2626' : '#f59e0b'};">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div class="store-name">${m.store}</div>
+                        <div style="display:flex; gap:6px;">${statusBadge}${alertBadge}</div>
+                    </div>
+                    <div class="store-address">${m.address} • Zone ${m.zone}</div>
+                    <div style="font-size:12px; color:var(--text-light); margin-top:4px;">
+                        Driver: <strong>${m.driver}</strong> • Time: ${m.time} • Reason: ${m.reason}
+                    </div>
+                    <div style="margin-top:8px; display:flex; gap:8px;">
+                        <button class="btn btn-primary btn-sm" onclick="showToast('Reschedule initiated for ${m.store}')" style="width:auto;">📅 Reschedule</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showToast('Manager notified for ${m.store}')" style="width:auto;">📧 Notify Manager</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function generateReport(type) {
+            const container = document.getElementById('cmd-report-output');
+            const now = new Date();
+            const totalRevenue = fleetData.drivers.reduce((s, d) => s + d.revenue, 0);
+            const totalDeliveries = fleetData.drivers.reduce((s, d) => s + d.deliveries, 0);
+            const totalMissed = fleetData.drivers.reduce((s, d) => s + d.missed, 0);
+            const avgEfficiency = fleetData.drivers.filter(d => d.efficiency > 0).reduce((s, d) => s + d.efficiency, 0) / fleetData.drivers.filter(d => d.efficiency > 0).length || 0;
+
+            let html = `<div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; font-size:13px; line-height:1.6;">
+                <div style="font-weight:700; font-size:16px; margin-bottom:8px;">${type === 'daily' ? '📅 Daily Operations Summary' : '📆 Weekly Performance Report'}</div>
+                <div style="font-size:12px; color:var(--text-light); margin-bottom:12px;">Generated: ${now.toLocaleString()}</div>
+                <div class="divider"></div>
+                <div class="metric-row"><span class="metric-label">Total Revenue</span><span class="metric-value positive">${fmt$(totalRevenue)}</span></div>
+                <div class="metric-row"><span class="metric-label">Deliveries Completed</span><span class="metric-value">${totalDeliveries}</span></div>
+                <div class="metric-row"><span class="metric-label">Missed Deliveries</span><span class="metric-value negative">${totalMissed}</span></div>
+                <div class="metric-row"><span class="metric-label">Fleet Efficiency</span><span class="metric-value">${Math.round(avgEfficiency)}%</span></div>
+                <div class="metric-row"><span class="metric-label">Active Drivers</span><span class="metric-value">${fleetData.drivers.filter(d => d.status === 'on-route').length} / ${fleetData.drivers.length}</span></div>
+                <div class="divider"></div>
+                <div style="font-weight:700; font-size:13px; margin-bottom:8px;">Zone Breakdown</div>`;
+
+            const zones = {};
+            fleetData.drivers.forEach(d => {
+                if (!zones[d.zone]) zones[d.zone] = { revenue: 0, deliveries: 0, missed: 0 };
+                zones[d.zone].revenue += d.revenue;
+                zones[d.zone].deliveries += d.deliveries;
+                zones[d.zone].missed += d.missed;
+            });
+            for (const [zone, data] of Object.entries(zones)) {
+                html += `<div class="metric-row"><span class="metric-label">Zone ${zone}</span><span class="metric-value">${fmt$(data.revenue)} • ${data.deliveries} delivered${data.missed > 0 ? ` • <span style="color:#dc2626;">${data.missed} missed</span>` : ''}</span></div>`;
+            }
+
+            html += `<div class="divider"></div>
+                <div style="font-weight:700; font-size:13px; margin-bottom:8px;">Warehouse Status</div>`;
+            for (const [whId, wh] of Object.entries(fleetData.warehouses)) {
+                const totalStock = Object.values(wh.inventory).reduce((s, v) => s + v, 0);
+                const alertCount = wh.alerts.filter(a => a.includes('critically') || a.includes('below')).length;
+                html += `<div class="metric-row"><span class="metric-label">${wh.name}</span><span class="metric-value">${totalStock} units${alertCount > 0 ? ` • <span style="color:#dc2626;">${alertCount} alerts</span>` : ''}</span></div>`;
+            }
+
+            html += `<div class="divider"></div>
+                <div style="font-size:11px; color:var(--text-light); text-align:center;">Report generated by FreshRoute AI™ Command Board</div>
+            </div>`;
+
+            container.innerHTML = html;
+        }
+
+
+        // ─── DIRECT MESSAGING LOGIC ───
+        let dmMessages = [];
+        let currentDMRole = 'manager';
+        let selectedDriverId = 'd1';
+
+        function initDM() {
+            const sel = document.getElementById('dm-driver-select');
+            if (!sel) return;
+            sel.innerHTML = fleetData.drivers.map(d => `<option value="${d.id}">${d.name} — ${d.route}</option>`).join('');
+            sel.value = selectedDriverId;
+            sel.onchange = () => { selectedDriverId = sel.value; renderDMChat(); };
+
+            // Load sample messages
+            dmMessages = [
+                { id: 1, from: 'manager', to: 'd1', driverId: 'd1', text: 'Good morning John! Your route looks clear today. All stores are expecting you on time.', time: '05:15 AM', date: new Date().toLocaleDateString(), urgent: false, read: true },
+                { id: 2, from: 'driver', to: 'manager', driverId: 'd1', text: 'Thanks! I am loaded and heading out. Will update you after the first stop.', time: '05:22 AM', date: new Date().toLocaleDateString(), urgent: false, read: true },
+                { id: 3, from: 'manager', to: 'd2', driverId: 'd2', text: 'Maria, the Shell Silver Spring manager called. They need an extra 6 Muffins today if you have space.', time: '07:45 AM', date: new Date().toLocaleDateString(), urgent: false, read: false },
+                { id: 4, from: 'manager', to: 'd3', driverId: 'd3', text: '🚨 Kevin — Exxon Germantown is closing early at 1 PM. Please prioritize that stop.', time: '09:30 AM', date: new Date().toLocaleDateString(), urgent: true, read: false },
+                { id: 5, from: 'driver', to: 'manager', driverId: 'd3', text: 'Got it. I am 10 minutes away. Will make it before they close.', time: '09:35 AM', date: new Date().toLocaleDateString(), urgent: false, read: true },
+            ];
+            renderDMChat();
+            renderDMHistory();
+        }
+
+        function switchDMRole() {
+            currentDMRole = document.getElementById('dm-role').value;
+            const driverSelect = document.getElementById('dm-driver-select');
+            if (currentDMRole === 'driver') {
+                driverSelect.disabled = true;
+                driverSelect.innerHTML = `<option value="${state.driver.name}">${state.driver.name} (You)</option>`;
+                selectedDriverId = state.driver.name;
+            } else {
+                driverSelect.disabled = false;
+                driverSelect.innerHTML = fleetData.drivers.map(d => `<option value="${d.id}">${d.name} — ${d.route}</option>`).join('');
+                selectedDriverId = 'd1';
+                driverSelect.value = selectedDriverId;
+            }
+            renderDMChat();
+        }
+
+        function sendDM() {
+            const input = document.getElementById('dm-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const msg = {
+                id: Date.now(),
+                from: currentDMRole,
+                to: currentDMRole === 'manager' ? selectedDriverId : 'manager',
+                driverId: currentDMRole === 'manager' ? selectedDriverId : state.driver.name,
+                text: text,
+                time: time,
+                date: now.toLocaleDateString(),
+                urgent: false,
+                read: false
+            };
+            dmMessages.push(msg);
+            input.value = '';
+            renderDMChat();
+            renderDMHistory();
+            showToast(currentDMRole === 'manager' ? `Message sent to ${getDriverName(selectedDriverId)}` : 'Message sent to manager');
+        }
+
+        function sendUrgentDM() {
+            const input = document.getElementById('dm-input');
+            const text = input.value.trim();
+            if (!text) { showToast('Please type a message before sending urgent'); return; }
+
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const msg = {
+                id: Date.now(),
+                from: currentDMRole,
+                to: currentDMRole === 'manager' ? selectedDriverId : 'manager',
+                driverId: currentDMRole === 'manager' ? selectedDriverId : state.driver.name,
+                text: '🚨 URGENT: ' + text,
+                time: time,
+                date: now.toLocaleDateString(),
+                urgent: true,
+                read: false
+            };
+            dmMessages.push(msg);
+            input.value = '';
+            renderDMChat();
+            renderDMHistory();
+            showToast('🚨 URGENT message sent!');
+        }
+
+        function insertQuickMsg(text) {
+            document.getElementById('dm-input').value = text;
+        }
+
+        function renderDMChat() {
+            const container = document.getElementById('dm-messages');
+            if (!container) return;
+
+            const relevantMsgs = dmMessages.filter(m => {
+                if (currentDMRole === 'manager') return m.driverId === selectedDriverId;
+                return m.driverId === state.driver.name || m.from === 'manager' && m.to === state.driver.name;
+            });
+
+            if (relevantMsgs.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-light);"><div style="font-size:32px; margin-bottom:10px;">💬</div><p>No messages yet. Start the conversation!</p></div>';
+                return;
+            }
+
+            let html = '';
+            relevantMsgs.forEach(m => {
+                const isMe = m.from === currentDMRole;
+                const isUrgent = m.urgent || m.text.includes('🚨 URGENT');
+                const bubbleColor = isUrgent ? '#fef2f2' : isMe ? '#dbeafe' : '#ffffff';
+                const borderColor = isUrgent ? '#fecaca' : isMe ? '#bfdbfe' : '#e2e8f0';
+                const align = isMe ? 'flex-end' : 'flex-start';
+                const avatar = isMe ? (currentDMRole === 'manager' ? '👔' : '🚚') : (m.from === 'manager' ? '👔' : '🚚');
+                const senderName = isMe ? (currentDMRole === 'manager' ? 'You (Manager)' : 'You (Driver)') : (m.from === 'manager' ? 'Market Manager' : getDriverName(m.driverId));
+
+                html += `<div style="display:flex; justify-content:${align}; margin-bottom:10px;">
+                    <div style="max-width:75%; background:${bubbleColor}; border:1px solid ${borderColor}; border-radius:12px; padding:10px 14px; font-size:13px; line-height:1.5;">
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                            <span style="font-size:14px;">${avatar}</span>
+                            <span style="font-weight:700; font-size:11px; color:var(--text-light);">${senderName}</span>
+                            <span style="font-size:10px; color:#94a3b8; margin-left:auto;">${m.time}</span>
+                        </div>
+                        <div style="color:${isUrgent ? '#dc2626' : 'var(--text)'}; font-weight:${isUrgent ? '600' : '400'};">${m.text}</div>
+                        ${isUrgent ? '<div style="margin-top:4px; font-size:10px; color:#dc2626; font-weight:700;">🔔 URGENT — Driver notified</div>' : ''}
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            // Auto-scroll to bottom
+            const chatContainer = document.getElementById('dm-chat-container');
+            if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function renderDMHistory() {
+            const container = document.getElementById('dm-history');
+            if (!container) return;
+
+            const grouped = {};
+            dmMessages.forEach(m => {
+                const key = m.driverId;
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(m);
+            });
+
+            if (Object.keys(grouped).length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No message history</p></div>';
+                return;
+            }
+
+            let html = '';
+            for (const [driverId, msgs] of Object.entries(grouped)) {
+                const driverName = getDriverName(driverId) || driverId;
+                const lastMsg = msgs[msgs.length - 1];
+                const unread = msgs.filter(m => m.from === 'manager' && !m.read).length;
+                html += `<div class="store-card" style="cursor:pointer;" onclick="selectDriverAndShow('${driverId}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="store-name">${driverName}</div>
+                        ${unread > 0 ? `<span class="badge badge-danger">${unread} unread</span>` : '<span class="badge badge-success">All read</span>'}
+                    </div>
+                    <div style="font-size:12px; color:var(--text-light); margin-top:4px;">${msgs.length} messages • Last: ${lastMsg.text.substring(0, 40)}${lastMsg.text.length > 40 ? '...' : ''}</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${lastMsg.time} • ${lastMsg.date}</div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function selectDriverAndShow(driverId) {
+            selectedDriverId = driverId;
+            document.getElementById('dm-driver-select').value = driverId;
+            showSection('messaging');
+            renderDMChat();
+        }
+
+        function getDriverName(id) {
+            const d = fleetData.drivers.find(d => d.id === id);
+            return d ? d.name : id;
+        }
+
+
+        // ─── DISPATCHER MODE LOGIC ───
+        let currentDispatchAction = '';
+        const dispatchLog = [];
+
+        function initDispatcher() {
+            const sel = document.getElementById('dispatch-target-driver');
+            if (!sel) return;
+            sel.innerHTML = fleetData.drivers.filter(d => d.status === 'on-route' || d.status === 'break').map(d => `<option value="${d.id}">${d.name} — ${d.route} (${d.status})</option>`).join('');
+            renderDispatchDriverMap();
+            renderDispatchLog();
+        }
+
+        function renderDispatchDriverMap() {
+            const container = document.getElementById('dispatch-driver-map');
+            if (!container) return;
+
+            const activeDrivers = fleetData.drivers.filter(d => d.status === 'on-route' || d.status === 'break');
+            if (activeDrivers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🗺️</div><p>No active drivers on the road</p></div>';
+                return;
+            }
+
+            let html = '<div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:16px; position:relative; min-height:200px;">';
+            html += '<div style="font-size:11px; color:#64748b; margin-bottom:10px; text-align:center;">🗺️ Live Driver Positions (Simulated Map View)</div>';
+
+            // Draw a simple grid representing the map area
+            html += '<div style="position:relative; height:200px; background:linear-gradient(135deg, #e0f2fe, #f0f9ff); border-radius:8px; border:1px solid #bae6fd; overflow:hidden;">';
+
+            // Home base marker
+            html += `<div style="position:absolute; left:10%; top:10%; transform:translate(-50%,-50%); text-align:center;">
+                <div style="width:24px; height:24px; background:#059669; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; margin:0 auto;">🏠</div>
+                <div style="font-size:9px; color:#065f46; margin-top:2px; font-weight:600;">HQ</div>
+            </div>`;
+
+            // Freezer marker
+            html += `<div style="position:absolute; left:30%; top:25%; transform:translate(-50%,-50%); text-align:center;">
+                <div style="width:24px; height:24px; background:#3b82f6; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; margin:0 auto;">❄️</div>
+                <div style="font-size:9px; color:#1e40af; margin-top:2px; font-weight:600;">Freezer</div>
+            </div>`;
+
+            // Driver markers
+            const positions = [
+                { left: '45%', top: '35%' },
+                { left: '65%', top: '50%' },
+                { left: '50%', top: '70%' },
+                { left: '80%', top: '30%' }
+            ];
+
+            activeDrivers.forEach((d, i) => {
+                const pos = positions[i % positions.length];
+                const statusColor = d.status === 'on-route' ? '#059669' : '#f59e0b';
+                html += `<div style="position:absolute; left:${pos.left}; top:${pos.top}; transform:translate(-50%,-50%); text-align:center; cursor:pointer;" onclick="selectDriverForDispatch('${d.id}')">
+                    <div style="width:28px; height:28px; background:${statusColor}; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:700; margin:0 auto; border:2px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.15);">${d.name.charAt(0)}</div>
+                    <div style="font-size:9px; color:#1e293b; margin-top:2px; font-weight:600; background:white; padding:1px 4px; border-radius:4px;">${d.name.split(' ')[0]}</div>
+                </div>`;
+            });
+
+            // Route lines (simplified SVG overlay)
+            html += `<svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity:0.3;">
+                <line x1="30%" y1="25%" x2="45%" y2="35%" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4"/>
+                <line x1="45%" y1="35%" x2="65%" y2="50%" stroke="#059669" stroke-width="2" stroke-dasharray="4"/>
+                <line x1="65%" y1="50%" x2="50%" y2="70%" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4"/>
+            </svg>`;
+
+            html += '</div>';
+            html += '<div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap; justify-content:center;">';
+            html += '<div style="display:flex; align-items:center; gap:4px; font-size:11px;"><div style="width:10px; height:10px; background:#059669; border-radius:50%;"></div> On Route</div>';
+            html += '<div style="display:flex; align-items:center; gap:4px; font-size:11px;"><div style="width:10px; height:10px; background:#f59e0b; border-radius:50%;"></div> On Break</div>';
+            html += '<div style="display:flex; align-items:center; gap:4px; font-size:11px;"><div style="width:10px; height:10px; background:#dc2626; border-radius:50%;"></div> Needs Help</div>';
+            html += '</div>';
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function dispatchAction(action) {
+            currentDispatchAction = action;
+            const panel = document.getElementById('dispatch-action-panel');
+            panel.style.display = 'block';
+
+            const actionLabels = {
+                reroute: '🔄 Reroute Driver — Send new route instructions',
+                emergency: '🚨 Emergency Support — Dispatch immediate assistance',
+                hold: '⏸️ Hold Route — Pause driver until further notice',
+                release: '▶️ Release Route — Clear driver to resume normal operations',
+                substitute: '👥 Send Substitute — Assign replacement driver',
+                checkin: '📍 Force Check-In — Request immediate location update'
+            };
+
+            // Pre-fill instruction based on action
+            const presets = {
+                reroute: 'Please follow the updated route: Skip Shell Gaithersburg and proceed directly to Exxon Germantown. New ETA will be calculated.',
+                emergency: 'EMERGENCY: Please pull over safely. Help is being dispatched to your location. Stay with your vehicle and call dispatch at (301) 555-0200.',
+                hold: 'HOLD: Please stop at your current location. Do not proceed to next store until you receive further instructions from dispatch.',
+                release: 'CLEAR: You are released to resume normal route operations. Proceed to next scheduled stop.',
+                substitute: 'SUBSTITUTE: Your replacement driver Kevin Brooks is en route to take over your route. Please hand off inventory and keys at your current location.',
+                checkin: 'CHECK-IN REQUIRED: Please confirm your current location and status. Reply with your nearest landmark or store name.'
+            };
+
+            document.getElementById('dispatch-instruction').value = presets[action] || '';
+            document.getElementById('dispatch-priority').value = action === 'emergency' ? 'critical' : action === 'reroute' ? 'high' : 'normal';
+
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function selectDriverForDispatch(driverId) {
+            document.getElementById('dispatch-target-driver').value = driverId;
+            document.getElementById('dispatch-action-panel').style.display = 'block';
+            document.getElementById('dispatch-action-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function sendDispatchInstruction() {
+            const driverId = document.getElementById('dispatch-target-driver').value;
+            const instruction = document.getElementById('dispatch-instruction').value.trim();
+            const priority = document.getElementById('dispatch-priority').value;
+            const dispatcher = document.getElementById('dispatch-name').value || 'Dispatcher';
+
+            if (!driverId || !instruction) { showToast('Please select a driver and enter instruction'); return; }
+
+            const driver = fleetData.drivers.find(d => d.id === driverId);
+            const now = new Date();
+
+            const logEntry = {
+                id: Date.now(),
+                dispatcher: dispatcher,
+                driver: driver ? driver.name : driverId,
+                driverId: driverId,
+                action: currentDispatchAction,
+                instruction: instruction,
+                priority: priority,
+                time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                date: now.toLocaleDateString(),
+                status: 'sent'
+            };
+            dispatchLog.unshift(logEntry);
+
+            // Also send as DM to the driver
+            dmMessages.push({
+                id: Date.now(),
+                from: 'manager',
+                to: driverId,
+                driverId: driverId,
+                text: `[DISPATCH] ${instruction}`,
+                time: logEntry.time,
+                date: logEntry.date,
+                urgent: priority === 'critical' || priority === 'high',
+                read: false
+            });
+
+            showToast(`Dispatch instruction sent to ${driver ? driver.name : driverId}`);
+            document.getElementById('dispatch-action-panel').style.display = 'none';
+            document.getElementById('dispatch-instruction').value = '';
+            renderDispatchLog();
+            renderDMChat();
+            renderDMHistory();
+        }
+
+        function renderDispatchLog() {
+            const container = document.getElementById('dispatch-log');
+            if (!container) return;
+
+            if (dispatchLog.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📻</div><p>No dispatch instructions sent yet</p></div>';
+                return;
+            }
+
+            let html = '';
+            dispatchLog.forEach(entry => {
+                const priorityColors = { critical: '#dc2626', high: '#f59e0b', normal: '#3b82f6' };
+                const priorityLabels = { critical: 'CRITICAL', high: 'HIGH', normal: 'NORMAL' };
+                const actionLabels = {
+                    reroute: '🔄 Reroute', emergency: '🚨 Emergency', hold: '⏸️ Hold',
+                    release: '▶️ Release', substitute: '👥 Substitute', checkin: '📍 Check-In'
+                };
+
+                html += `<div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; padding:12px; background:#f8fafc; border-radius:8px; border-left:4px solid ${priorityColors[entry.priority]};">
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <div style="font-weight:700; font-size:13px;">${actionLabels[entry.action] || entry.action} — ${entry.driver}</div>
+                            <span class="badge" style="background:${priorityColors[entry.priority]}15; color:${priorityColors[entry.priority]}; font-size:10px;">${priorityLabels[entry.priority]}</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--text); margin-bottom:4px; line-height:1.5;">${entry.instruction}</div>
+                        <div style="font-size:11px; color:var(--text-light);">By ${entry.dispatcher} • ${entry.time} • ${entry.date}</div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
 
         window.addEventListener('load', init);
     </script>
